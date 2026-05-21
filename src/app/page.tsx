@@ -1,113 +1,139 @@
-const sections = [
+import { AppShell } from "@/components/app-shell";
+import { StatusBadge } from "@/components/status-badge";
+import { prisma } from "@/lib/db";
+
+async function getDashboardMetrics() {
+  const [drafts, published, quality, moderation] = await Promise.all([
+    prisma.draft.count(),
+    prisma.post.count({ where: { status: "published" } }),
+    prisma.qualityScore.aggregate({ _avg: { total: true } }),
+    prisma.moderationResult.findMany({ select: { riskLevel: true } })
+  ]);
+
+  const passedModeration = moderation.filter(
+    (item) => item.riskLevel === "safe" || item.riskLevel === "low"
+  ).length;
+  const passRate =
+    moderation.length === 0
+      ? 0
+      : Math.round((passedModeration / moderation.length) * 100);
+
+  return [
+    { label: "草稿数", value: drafts.toString(), tone: "neutral" as const },
+    { label: "已发布", value: published.toString(), tone: "safe" as const },
+    {
+      label: "平均质量分",
+      value: Math.round(quality._avg.total ?? 0).toString(),
+      tone: "safe" as const
+    },
+    { label: "审核通过率", value: `${passRate}%`, tone: "safe" as const }
+  ];
+}
+
+const modules = [
   {
     title: "创作台",
-    description: "围绕素材、选题、受众和 Prompt 生成短图文内容。",
-    href: "/create"
+    href: "/create",
+    description: "围绕素材、选题、受众、平台和 Prompt 生成短图文草稿。",
+    status: "主流程入口"
   },
   {
     title: "素材库",
-    description: "上传图片素材，查看基础合规状态和引用情况。",
-    href: "/materials"
-  },
-  {
-    title: "内容管理",
-    description: "管理草稿、已发布和被驳回内容，支持二次编辑。",
-    href: "/posts"
+    href: "/materials",
+    description: "上传图片素材，查看合规状态、风险说明和引用次数。",
+    status: "内容资产"
   },
   {
     title: "审核与质量",
-    description: "展示安全风险、质量评分和一键合规改写入口。",
-    href: "/review"
+    href: "/review",
+    description: "展示风险命中、质量评分和一键合规改写结果。",
+    status: "安全防火墙"
   },
   {
     title: "热点榜单",
-    description: "查看热点榜、爆文榜和推荐流的智能排序解释。",
-    href: "/rankings"
-  },
-  {
-    title: "规则体系",
-    description: "沉淀内容安全审核规则库和质量评估标准。",
-    href: "/rules"
-  },
-  {
-    title: "效果评估",
-    description: "展示审核准确率、Prompt 调优和 LCP 性能结果。",
-    href: "/evaluation"
+    href: "/rankings",
+    description: "按质量、热度、新鲜度、反馈和风险惩罚综合排序。",
+    status: "分发评估"
   }
 ];
 
-const metrics = [
-  { label: "主链路", value: "创作-审核-发布-分发" },
-  { label: "AI 模式", value: "真实 API + Mock 兜底" },
-  { label: "性能目标", value: "LCP <= 2.5s" },
-  { label: "审核目标", value: "高危识别 90%+" }
-];
+export default async function Home() {
+  const metrics = await getDashboardMetrics();
 
-export default function Home() {
   return (
-    <main className="min-h-screen px-6 py-8 sm:px-10 lg:px-16">
-      <section className="mx-auto flex max-w-7xl flex-col gap-10">
-        <header className="flex flex-col gap-6 border-b border-line pb-8 lg:flex-row lg:items-end lg:justify-between">
-          <div className="max-w-3xl">
-            <p className="text-sm font-semibold uppercase tracking-[0.22em] text-accent">
-              Toutiao AI Frontend Camp
-            </p>
-            <h1 className="mt-4 text-4xl font-semibold leading-tight text-ink sm:text-5xl">
-              AI 创作者辅助生产与分发平台
-            </h1>
-            <p className="mt-5 text-lg leading-8 text-muted">
-              一个面向短图文创作者的端到端工作台，覆盖素材管理、AI
-              生成、内容审核、质量评分、发布分发和效果评估。
-            </p>
-          </div>
-          <div className="rounded-lg border border-line bg-white/70 px-5 py-4 shadow-soft">
-            <p className="text-sm text-muted">当前阶段</p>
-            <p className="mt-1 text-xl font-semibold text-ink">工程基线已就绪</p>
-          </div>
-        </header>
-
-        <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-          {metrics.map((metric) => (
-            <div
-              key={metric.label}
-              className="rounded-lg border border-line bg-white/80 p-5 shadow-soft"
-            >
+    <AppShell
+      eyebrow="Toutiao AI Frontend Camp"
+      title="AI 创作者工作台"
+      description="当前基线已经接入本地数据库、演示账号和认证接口；后续任务会继续把素材、创作、审核、发布和榜单串成完整闭环。"
+    >
+      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        {metrics.map((metric) => (
+          <div
+            key={metric.label}
+            className="rounded-lg border border-line bg-white/85 p-5 shadow-soft"
+          >
+            <div className="flex items-center justify-between gap-3">
               <p className="text-sm text-muted">{metric.label}</p>
-              <p className="mt-2 text-xl font-semibold text-ink">{metric.value}</p>
+              <StatusBadge tone={metric.tone}>种子数据</StatusBadge>
             </div>
-          ))}
-        </section>
+            <p className="mt-4 text-3xl font-semibold text-ink">{metric.value}</p>
+          </div>
+        ))}
+      </section>
 
-        <section>
-          <div className="flex items-center justify-between gap-4">
+      <section className="grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
+        <div className="rounded-lg border border-line bg-white/85 p-6 shadow-soft">
+          <div className="flex items-start justify-between gap-4">
             <div>
-              <h2 className="text-2xl font-semibold text-ink">功能入口</h2>
-              <p className="mt-2 text-sm text-muted">
-                后续任务会按实施计划逐步接入真实数据和交互。
+              <h2 className="text-2xl font-semibold text-ink">演示主链路</h2>
+              <p className="mt-2 text-sm leading-6 text-muted">
+                从登录到发布分发的关键能力会按实施计划逐步接入。当前页面先提供清晰入口和种子指标。
               </p>
             </div>
+            <StatusBadge tone="safe">Task 4</StatusBadge>
           </div>
 
-          <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-            {sections.map((section) => (
+          <div className="mt-6 grid gap-3 sm:grid-cols-2">
+            {modules.map((module) => (
               <a
-                key={section.title}
-                href={section.href}
-                className="group rounded-lg border border-line bg-white/75 p-5 shadow-soft transition hover:-translate-y-0.5 hover:border-accent"
+                key={module.href}
+                href={module.href}
+                className="rounded-lg border border-line bg-[#fbfaf6] p-4 transition hover:-translate-y-0.5 hover:border-accent"
               >
-                <h3 className="text-lg font-semibold text-ink">{section.title}</h3>
-                <p className="mt-3 min-h-12 text-sm leading-6 text-muted">
-                  {section.description}
-                </p>
-                <span className="mt-5 inline-flex text-sm font-medium text-accent">
-                  进入模块
-                  <span className="ml-1 transition group-hover:translate-x-1">→</span>
-                </span>
+                <div className="flex items-center justify-between gap-3">
+                  <h3 className="text-lg font-semibold text-ink">{module.title}</h3>
+                  <span className="text-xs text-accent">{module.status}</span>
+                </div>
+                <p className="mt-3 text-sm leading-6 text-muted">{module.description}</p>
               </a>
             ))}
           </div>
-        </section>
+        </div>
+
+        <aside className="rounded-lg border border-line bg-white/85 p-6 shadow-soft">
+          <h2 className="text-xl font-semibold text-ink">交付指标</h2>
+          <div className="mt-5 space-y-4">
+            <div>
+              <div className="flex justify-between text-sm">
+                <span className="text-muted">核心功能覆盖</span>
+                <span className="font-medium text-ink">18 / 18</span>
+              </div>
+              <div className="mt-2 h-2 rounded-full bg-[#e7e2d6]">
+                <div className="h-2 rounded-full bg-accent" style={{ width: "100%" }} />
+              </div>
+            </div>
+            <div>
+              <div className="flex justify-between text-sm">
+                <span className="text-muted">进阶挑战</span>
+                <span className="font-medium text-ink">3 / 3</span>
+              </div>
+              <div className="mt-2 h-2 rounded-full bg-[#e7e2d6]">
+                <div className="h-2 rounded-full bg-warn" style={{ width: "100%" }} />
+              </div>
+            </div>
+          </div>
+        </aside>
       </section>
-    </main>
+    </AppShell>
   );
 }
