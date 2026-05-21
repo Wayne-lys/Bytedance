@@ -1,10 +1,8 @@
-import { StatusBadge } from "@/components/status-badge";
-import { prisma } from "@/lib/db";
+import { MaterialPicker } from "@/components/material-picker";
+import { listMaterials } from "@/features/materials/material-service";
 
 export default async function MaterialsPage() {
-  const materials = await prisma.material.findMany({
-    orderBy: { createdAt: "desc" }
-  });
+  const materials = await listMaterials();
 
   return (
     <section className="rounded-lg border border-line bg-white/85 p-6 shadow-soft">
@@ -20,29 +18,8 @@ export default async function MaterialsPage() {
         </button>
       </div>
 
-      <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-        {materials.map((material) => (
-          <article key={material.id} className="rounded-lg border border-line bg-[#fbfaf6] p-4">
-            <div className="aspect-[16/9] rounded-md border border-line bg-white" />
-            <div className="mt-4 flex items-start justify-between gap-3">
-              <div>
-                <h3 className="font-semibold text-ink">{material.name}</h3>
-                <p className="mt-1 text-sm text-muted">引用 {material.referenceCount} 次</p>
-              </div>
-              <StatusBadge
-                tone={
-                  material.compliance === "safe"
-                    ? "safe"
-                    : material.compliance === "warning"
-                      ? "warning"
-                      : "blocked"
-                }
-              >
-                {material.compliance}
-              </StatusBadge>
-            </div>
-          </article>
-        ))}
+      <div className="mt-6">
+        <MaterialPicker materials={materials} />
       </div>
     </section>
   );
