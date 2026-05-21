@@ -95,7 +95,7 @@ Database and seed:
 
 - `prisma/schema.prisma`
 - `prisma/seed.ts`
-- `public/demo-materials/*`: small committed demo image placeholders or generated static assets.
+- `public/demo-materials/*`: small committed demo sample images or generated static assets.
 
 Tests:
 
@@ -156,7 +156,7 @@ Minimum scripts in `package.json`:
 }
 ```
 
-- [ ] **Step 2: Add app shell placeholder**
+- [ ] **Step 2: Add initial app shell**
 
 Implement `src/app/layout.tsx`, `src/app/globals.css`, and `src/app/page.tsx` with a minimal Chinese UI shell and links to the planned sections.
 
@@ -293,7 +293,7 @@ Expected: PASS.
 - [ ] **Step 6: Commit**
 
 ```bash
-git add src/lib/auth.ts src/app/api/auth src/app/(auth)/login tests/api/auth.test.ts
+git add src/lib/auth.ts src/app/api/auth 'src/app/(auth)/login' tests/api/auth.test.ts
 git commit -m "feat: add email and phone auth"
 ```
 
@@ -324,7 +324,7 @@ Create Chinese navigation:
 - 规则体系
 - 效果评估
 
-- [ ] **Step 2: Add dashboard metrics placeholders**
+- [ ] **Step 2: Add dashboard metrics from seed data**
 
 Root page should show:
 
@@ -397,7 +397,7 @@ Expected: PASS.
 - [ ] **Step 6: Commit**
 
 ```bash
-git add src/features/materials src/app/api/materials src/app/(workspace)/materials src/components/material-picker.tsx tests
+git add src/features/materials src/app/api/materials 'src/app/(workspace)/materials' src/components/material-picker.tsx tests
 git commit -m "feat: add material library and compliance checks"
 ```
 
@@ -436,7 +436,7 @@ Expected: PASS.
 - [ ] **Step 5: Commit**
 
 ```bash
-git add src/features/prompts src/app/api/prompts src/components/prompt-picker.tsx src/app/(workspace)/create/page.tsx
+git add src/features/prompts src/app/api/prompts src/components/prompt-picker.tsx 'src/app/(workspace)/create/page.tsx'
 git commit -m "feat: add prompt template management"
 ```
 
@@ -559,7 +559,7 @@ Expected: PASS.
 - [ ] **Step 6: Commit**
 
 ```bash
-git add src/features/drafts src/app/api/drafts src/app/(workspace)/create/page.tsx src/components/offline-sync-indicator.tsx tests/unit/draft-conflict.test.ts
+git add src/features/drafts src/app/api/drafts 'src/app/(workspace)/create/page.tsx' src/components/offline-sync-indicator.tsx tests/unit/draft-conflict.test.ts
 git commit -m "feat: add creation studio autosave and offline sync"
 ```
 
@@ -631,7 +631,7 @@ Expected: PASS.
 - [ ] **Step 7: Commit**
 
 ```bash
-git add src/features/moderation src/features/quality src/app/api/moderation src/components/moderation-panel.tsx src/components/quality-score-card.tsx src/app/(workspace)/review src/app/(workspace)/create/page.tsx tests/unit
+git add src/features/moderation src/features/quality src/app/api/moderation src/components/moderation-panel.tsx src/components/quality-score-card.tsx 'src/app/(workspace)/review' 'src/app/(workspace)/create/page.tsx' tests/unit
 git commit -m "feat: add moderation quality scoring and rewrite"
 ```
 
@@ -695,7 +695,7 @@ Expected: PASS.
 - [ ] **Step 6: Commit**
 
 ```bash
-git add src/app/api/posts src/app/(workspace)/posts src/app/content tests/api/content-flow.test.ts
+git add src/app/api/posts 'src/app/(workspace)/posts' src/app/content tests/api/content-flow.test.ts
 git commit -m "feat: add publishing content management and detail pages"
 ```
 
@@ -756,7 +756,7 @@ Expected: PASS.
 - [ ] **Step 6: Commit**
 
 ```bash
-git add src/features/ranking src/app/api/ranking src/components/ranking-list.tsx src/app/(workspace)/rankings tests/unit/ranking-service.test.ts
+git add src/features/ranking src/app/api/ranking src/components/ranking-list.tsx 'src/app/(workspace)/rankings' tests/unit/ranking-service.test.ts
 git commit -m "feat: add intelligent rankings and infinite scroll"
 ```
 
@@ -796,7 +796,7 @@ Show:
 - prompt tuning notes.
 - rewrite comparisons.
 - ranking explanation summary.
-- LCP result placeholder until performance task runs.
+- LCP section that shows a pending state until Task 14 writes measured results.
 
 - [ ] **Step 5: Run build**
 
@@ -811,7 +811,7 @@ Expected: PASS.
 - [ ] **Step 6: Commit**
 
 ```bash
-git add src/features/evaluation src/app/api/moderation/evaluate src/app/(workspace)/rules src/app/(workspace)/evaluation prisma/seed.ts
+git add src/features/evaluation src/app/api/moderation/evaluate 'src/app/(workspace)/rules' 'src/app/(workspace)/evaluation' prisma/seed.ts
 git commit -m "feat: add rules and evaluation dashboards"
 ```
 
@@ -893,7 +893,7 @@ Expected: recorded LCP <= 2.5s on local production build, or documented local ma
 - [ ] **Step 4: Commit**
 
 ```bash
-git add tests/performance/lcp.spec.ts src/app/(workspace)/rankings src/app/content docs/evaluation-report.md
+git add tests/performance/lcp.spec.ts 'src/app/(workspace)/rankings' src/app/content docs/evaluation-report.md
 git commit -m "perf: verify ranking and detail lcp"
 ```
 
@@ -1010,4 +1010,3 @@ git commit -m "chore: finalize platform delivery"
 ```
 
 Only commit if verification required fixes.
-
