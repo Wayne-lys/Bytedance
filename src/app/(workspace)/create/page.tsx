@@ -1,6 +1,10 @@
 import { StatusBadge } from "@/components/status-badge";
+import { PromptPicker } from "@/components/prompt-picker";
+import { listPromptTemplates } from "@/features/prompts/prompt-service";
 
-export default function CreatePage() {
+export default async function CreatePage() {
+  const prompts = await listPromptTemplates();
+
   return (
     <section className="grid gap-4 lg:grid-cols-[1.15fr_0.85fr]">
       <div className="rounded-lg border border-line bg-white/85 p-6 shadow-soft">
@@ -29,12 +33,12 @@ export default function CreatePage() {
       </div>
 
       <aside className="rounded-lg border border-line bg-white/85 p-6 shadow-soft">
-        <h3 className="text-xl font-semibold text-ink">AI 审核与质量面板</h3>
-        <div className="mt-5 space-y-3">
-          <StatusBadge tone="neutral">等待生成内容</StatusBadge>
-          <p className="text-sm leading-6 text-muted">
-            发布前会显示风险等级、命中规则、质量分和合规改写入口。
-          </p>
+        <div className="flex items-center justify-between gap-3">
+          <h3 className="text-xl font-semibold text-ink">Prompt 模板</h3>
+          <StatusBadge tone="safe">{prompts.length} 个</StatusBadge>
+        </div>
+        <div className="mt-5">
+          <PromptPicker prompts={prompts} />
         </div>
       </aside>
     </section>
