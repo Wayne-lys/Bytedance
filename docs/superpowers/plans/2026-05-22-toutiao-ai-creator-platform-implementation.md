@@ -25,7 +25,7 @@ Planned top-level files:
 - `tsconfig.json`: TypeScript config.
 - `tailwind.config.ts`: Tailwind config.
 - `postcss.config.mjs`: PostCSS config.
-- `vitest.config.ts`: unit/API test config.
+- `vitest.config.mts`: unit/API test config.
 - `playwright.config.ts`: E2E config.
 - `.env.example`: documented environment variables.
 - `.gitignore`: ignore dependencies, env files, generated DB/files.
@@ -125,7 +125,7 @@ Docs:
 - Create: `tsconfig.json`
 - Create: `tailwind.config.ts`
 - Create: `postcss.config.mjs`
-- Create: `vitest.config.ts`
+- Create: `vitest.config.mts`
 - Create: `playwright.config.ts`
 - Create: `.env.example`
 - Create: `.gitignore`
@@ -174,7 +174,7 @@ Expected: dependencies install and the empty app builds.
 - [ ] **Step 4: Commit**
 
 ```bash
-git add package.json package-lock.json next.config.mjs tsconfig.json tailwind.config.ts postcss.config.mjs vitest.config.ts playwright.config.ts .env.example .gitignore src/app
+git add package.json package-lock.json next.config.mjs tsconfig.json tailwind.config.ts postcss.config.mjs vitest.config.mts playwright.config.ts .env.example .gitignore src/app
 git commit -m "chore: scaffold next app baseline"
 ```
 
