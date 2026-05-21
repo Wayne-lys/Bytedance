@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 540" role="img" aria-label="风险样例素材">
+  <rect width="960" height="540" fill="#fff7ed"/>
+  <rect x="112" y="96" width="736" height="348" rx="28" fill="#ffffff"/>
+  <path d="M480 142l214 260H266z" fill="#b25b2a"/>
+  <rect x="464" y="228" width="32" height="96" rx="16" fill="#ffffff"/>
+  <circle cx="480" cy="354" r="18" fill="#ffffff"/>
+</svg>

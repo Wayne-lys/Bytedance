@@ -1,0 +1,175 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String?  @unique
+  phone        String?  @unique
+  passwordHash String?
+  name         String
+  avatarUrl    String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  phoneCodes       PhoneCode[]
+  materials        Material[]
+  promptTemplates  PromptTemplate[]
+  drafts           Draft[]
+  posts            Post[]
+}
+
+model PhoneCode {
+  id        String   @id @default(cuid())
+  phone     String
+  code      String
+  consumed  Boolean  @default(false)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id])
+
+  @@index([phone])
+}
+
+model Material {
+  id             String   @id @default(cuid())
+  ownerId        String
+  name           String
+  type           String
+  url            String
+  compliance     String
+  riskReason     String?
+  referenceCount Int      @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  owner User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+}
+
+model PromptTemplate {
+  id        String   @id @default(cuid())
+  ownerId   String?
+  name      String
+  scenario  String
+  content   String
+  variables String
+  enabled   Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  owner User? @relation(fields: [ownerId], references: [id], onDelete: SetNull)
+}
+
+model Draft {
+  id          String   @id @default(cuid())
+  authorId    String
+  title       String
+  coverUrl    String?
+  body        String
+  tags        String
+  topic       String?
+  audience    String?
+  platform    String?
+  style       String?
+  status      String   @default("draft")
+  localState  String   @default("synced")
+  version     Int      @default(1)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  author User @relation(fields: [authorId], references: [id], onDelete: Cascade)
+}
+
+model Post {
+  id          String    @id @default(cuid())
+  authorId    String
+  title       String
+  coverUrl    String?
+  body        String
+  tags        String
+  status      String
+  publishedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  author           User               @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  moderationResult ModerationResult?
+  qualityScore     QualityScore?
+  rankingMetric    RankingMetric?
+}
+
+model ModerationResult {
+  id              String   @id @default(cuid())
+  postId          String   @unique
+  riskLevel       String
+  riskTypes       String
+  matchedRules    String
+  reason          String
+  suggestedAction String
+  provider        String
+  createdAt       DateTime @default(now())
+
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+}
+
+model QualityScore {
+  id                   String   @id @default(cuid())
+  postId               String   @unique
+  originality          Int
+  structure            Int
+  informationDensity   Int
+  clarity              Int
+  interactionPotential Int
+  platformFit          Int
+  total                Int
+  createdAt            DateTime @default(now())
+
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+}
+
+model RankingMetric {
+  id             String   @id @default(cuid())
+  postId         String   @unique
+  views          Int      @default(0)
+  likes          Int      @default(0)
+  saves          Int      @default(0)
+  feedbackScore  Int      @default(0)
+  heatScore      Float    @default(0)
+  freshnessScore Float    @default(0)
+  riskPenalty    Float    @default(0)
+  rankingScore   Float    @default(0)
+  updatedAt      DateTime @updatedAt
+
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+}
+
+model AuditRule {
+  id          String   @id @default(cuid())
+  category    String
+  description String
+  riskLevel   String
+  pattern     String
+  action      String
+  enabled     Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model EvaluationCase {
+  id             String   @id @default(cuid())
+  title          String
+  content        String
+  expectedRisk   String
+  expectedLevel  String
+  actualRisk     String?
+  actualLevel    String?
+  matched        Boolean  @default(false)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}

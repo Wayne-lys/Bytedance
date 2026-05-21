@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 540" role="img" aria-label="城市咖啡店封面">
+  <rect width="960" height="540" fill="#f7f5ef"/>
+  <rect x="72" y="80" width="816" height="380" rx="28" fill="#ffffff"/>
+  <rect x="120" y="126" width="280" height="288" rx="18" fill="#1e7f68"/>
+  <circle cx="260" cy="246" r="86" fill="#f7f5ef"/>
+  <path d="M214 246h92v54c0 28-20 48-46 48s-46-20-46-48z" fill="#17211b"/>
+  <path d="M306 262h28c18 0 30 12 30 28s-12 28-30 28h-28" fill="none" stroke="#17211b" stroke-width="18"/>
+  <rect x="452" y="146" width="316" height="26" rx="13" fill="#17211b"/>
+  <rect x="452" y="204" width="356" height="18" rx="9" fill="#5d6a63"/>
+  <rect x="452" y="248" width="288" height="18" rx="9" fill="#5d6a63"/>
+  <rect x="452" y="326" width="180" height="44" rx="22" fill="#1e7f68"/>
+</svg>

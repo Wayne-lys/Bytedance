@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 540" role="img" aria-label="周末清单配图">
+  <rect width="960" height="540" fill="#eef5f2"/>
+  <rect x="156" y="82" width="648" height="376" rx="24" fill="#ffffff"/>
+  <rect x="212" y="138" width="260" height="34" rx="17" fill="#17211b"/>
+  <circle cx="228" cy="232" r="14" fill="#1e7f68"/>
+  <rect x="264" y="220" width="380" height="24" rx="12" fill="#5d6a63"/>
+  <circle cx="228" cy="304" r="14" fill="#1e7f68"/>
+  <rect x="264" y="292" width="432" height="24" rx="12" fill="#5d6a63"/>
+  <circle cx="228" cy="376" r="14" fill="#1e7f68"/>
+  <rect x="264" y="364" width="340" height="24" rx="12" fill="#5d6a63"/>
+</svg>
