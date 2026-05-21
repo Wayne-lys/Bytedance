@@ -1,10 +1,19 @@
 import { StatusBadge } from "@/components/status-badge";
+import { ModerationPanel } from "@/components/moderation-panel";
+import { QualityScoreCard } from "@/components/quality-score-card";
+import { reviewAndScoreContent } from "@/features/moderation/moderation-service";
 import { prisma } from "@/lib/db";
 
 export default async function ReviewPage() {
   const results = await prisma.moderationResult.findMany({
     include: { post: { include: { qualityScore: true } } },
     orderBy: { createdAt: "desc" }
+  });
+  const demoReview = reviewAndScoreContent({
+    title: "通勤路上的 3 个轻量补能习惯",
+    body: "早高峰可以提前准备低糖咖啡、阅读清单和 10 分钟轻运动。每个动作都有明确场景和执行方式。",
+    tags: ["通勤", "效率", "生活方式"],
+    platform: "头条"
   });
 
   return (
@@ -14,6 +23,10 @@ export default async function ReviewPage() {
         <p className="mt-2 text-sm leading-6 text-muted">
           这里会展示风险等级、命中规则、质量分和合规改写前后对比。
         </p>
+        <div className="mt-5 grid gap-4">
+          <ModerationPanel result={demoReview.moderation} />
+          <QualityScoreCard score={demoReview.quality} />
+        </div>
       </div>
 
       <div className="space-y-3">
