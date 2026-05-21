@@ -21,7 +21,7 @@ Create the project in `C:\Users\13093\Desktop\toutiao-ai-creator-platform`.
 Planned top-level files:
 
 - `package.json`: scripts and dependencies.
-- `next.config.ts`: Next.js config.
+- `next.config.mjs`: Next.js config.
 - `tsconfig.json`: TypeScript config.
 - `tailwind.config.ts`: Tailwind config.
 - `postcss.config.mjs`: PostCSS config.
@@ -121,7 +121,7 @@ Docs:
 
 **Files:**
 - Create: `package.json`
-- Create: `next.config.ts`
+- Create: `next.config.mjs`
 - Create: `tsconfig.json`
 - Create: `tailwind.config.ts`
 - Create: `postcss.config.mjs`
@@ -174,7 +174,7 @@ Expected: dependencies install and the empty app builds.
 - [ ] **Step 4: Commit**
 
 ```bash
-git add package.json next.config.ts tsconfig.json tailwind.config.ts postcss.config.mjs vitest.config.ts playwright.config.ts .env.example .gitignore src/app
+git add package.json package-lock.json next.config.mjs tsconfig.json tailwind.config.ts postcss.config.mjs vitest.config.ts playwright.config.ts .env.example .gitignore src/app
 git commit -m "chore: scaffold next app baseline"
 ```
 
