@@ -14,7 +14,9 @@ describe("material delete button", () => {
   beforeEach(() => {
     refreshMock.mockReset();
     vi.unstubAllGlobals();
-    vi.stubGlobal("confirm", vi.fn(() => true));
+    vi.stubGlobal("confirm", vi.fn(() => {
+      throw new Error("native confirm should not be used");
+    }));
     vi.stubGlobal(
       "fetch",
       vi.fn().mockResolvedValue(
@@ -26,7 +28,7 @@ describe("material delete button", () => {
     );
   });
 
-  it("confirms before deleting a material and refreshes the list", async () => {
+  it("uses an in-app dialog before deleting a material and refreshes the list", async () => {
     render(
       <MaterialDeleteButton
         id="material_1"
@@ -37,9 +39,13 @@ describe("material delete button", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "删除 通勤清单.png" }));
 
-    expect(confirm).toHaveBeenCalledWith(
-      "素材“通勤清单.png”已被引用 2 次，仍要删除吗？"
-    );
+    const dialog = screen.getByRole("dialog", { name: "删除素材" });
+
+    expect(dialog).toHaveTextContent("通勤清单.png");
+    expect(dialog).toHaveTextContent("已被引用 2 次");
+    expect(confirm).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole("button", { name: "确认删除" }));
+
     await waitFor(() => {
       expect(fetch).toHaveBeenCalledWith("/api/materials/material_1", {
         method: "DELETE"
@@ -50,15 +56,15 @@ describe("material delete button", () => {
   });
 
   it("does not call the API when deletion is cancelled", () => {
-    vi.stubGlobal("confirm", vi.fn(() => false));
-
     render(
       <MaterialDeleteButton id="material_1" name="通勤清单.png" referenceCount={0} />
     );
 
     fireEvent.click(screen.getByRole("button", { name: "删除 通勤清单.png" }));
+    fireEvent.click(screen.getByRole("button", { name: "取消" }));
 
     expect(fetch).not.toHaveBeenCalled();
     expect(refreshMock).not.toHaveBeenCalled();
+    expect(screen.queryByRole("dialog", { name: "删除素材" })).not.toBeInTheDocument();
   });
 });

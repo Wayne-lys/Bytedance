@@ -54,11 +54,6 @@ test("creator deletes an uploaded material from the material list", async ({ pag
     "base64"
   );
 
-  page.on("dialog", async (dialog) => {
-    expect(dialog.message()).toBe(`确定删除素材“${uploadName}”吗？`);
-    await dialog.accept();
-  });
-
   await page.goto("/login");
   await page.getByLabel("邮箱").fill("creator@example.com");
   await page.getByLabel("密码").fill("Demo123456");
@@ -89,6 +84,11 @@ test("creator deletes an uploaded material from the material list", async ({ pag
   );
 
   await uploadedCard.getByRole("button", { name: `删除 ${uploadName}` }).click();
+  const dialog = page.getByRole("dialog", { name: "删除素材" });
+
+  await expect(dialog).toBeVisible();
+  await expect(dialog).toContainText(uploadName);
+  await dialog.getByRole("button", { name: "确认删除" }).click();
   expect((await deleteResponse).ok()).toBe(true);
   await expect(uploadedCard).toBeHidden();
 });
