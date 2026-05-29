@@ -31,7 +31,7 @@ export default async function ContentDetailPage({
   const readCount = post.rankingMetric?.views ?? 0;
 
   return (
-    <main className="min-h-screen px-5 py-6 sm:px-8 lg:px-10">
+    <main className="min-h-screen px-5 py-6 sm:px-8 lg:px-10" data-testid="content-detail-page">
       <article className="mx-auto grid max-w-6xl gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
         <section className="rounded-lg border border-line bg-white/90 p-6 shadow-soft sm:p-8">
           <div className="flex flex-wrap items-center gap-3">
@@ -54,6 +54,8 @@ export default async function ContentDetailPage({
             <img
               src={post.coverUrl}
               alt=""
+              width={960}
+              height={540}
               className="mt-6 aspect-[16/9] w-full rounded-lg border border-line object-cover"
             />
           ) : null}

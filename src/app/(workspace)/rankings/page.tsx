@@ -42,7 +42,7 @@ export default async function RankingsPage({
   });
 
   return (
-    <section className="space-y-5">
+    <section className="space-y-5" data-testid="rankings-page">
       <div className="rounded-lg border border-line bg-white/85 p-6 shadow-soft">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
