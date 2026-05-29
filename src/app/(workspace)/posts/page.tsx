@@ -56,17 +56,18 @@ export default async function PostsPage({
 
   return (
     <section className="space-y-5">
-      <div className="rounded-lg border border-line bg-white/85 p-6 shadow-soft">
+      <div className="studio-panel p-6">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <h2 className="text-2xl font-semibold text-ink">内容管理</h2>
+            <p className="text-xs font-semibold text-accent">Content Ops</p>
+            <h2 className="mt-2 text-3xl font-semibold text-ink">内容管理</h2>
             <p className="mt-2 max-w-3xl text-sm leading-6 text-muted">
               集中管理草稿、已发布和被驳回内容。这里保留二次编辑、重新审核和更新发布入口，方便演示发布后的闭环。
             </p>
           </div>
           <a
             href="/create"
-            className="inline-flex h-10 items-center justify-center rounded-md bg-accent px-4 text-sm font-medium text-white transition hover:bg-[#176854]"
+            className="studio-button inline-flex h-10 items-center justify-center bg-accent px-4 text-sm font-semibold text-white shadow-crisp hover:bg-sidebar"
           >
             继续创作
           </a>
@@ -80,10 +81,10 @@ export default async function PostsPage({
               <a
                 key={tab.id}
                 href={`/posts?status=${tab.id}`}
-                className={`shrink-0 rounded-md border px-4 py-2 text-sm font-medium transition ${
+                className={`studio-button shrink-0 border px-4 py-2 text-sm font-semibold ${
                   active
                     ? "border-accent bg-accent text-white"
-                    : "border-line bg-white text-muted hover:border-accent hover:text-ink"
+                    : "border-line bg-panel text-muted hover:border-accent hover:text-ink"
                 }`}
               >
                 {tab.label}
@@ -95,7 +96,7 @@ export default async function PostsPage({
       </div>
 
       {activeStatus === "drafts" ? (
-        <div className="overflow-hidden rounded-lg border border-line bg-white/85 shadow-soft">
+        <div className="studio-panel overflow-hidden">
           {drafts.length === 0 ? (
             <div className="p-6 text-sm text-muted">暂无草稿，进入创作台生成第一篇短图文。</div>
           ) : (
@@ -117,13 +118,13 @@ export default async function PostsPage({
                 <div className="flex flex-wrap items-center gap-2 lg:justify-end">
                   <a
                     href={`/create?draftId=${draft.id}`}
-                    className="rounded-md border border-line px-3 py-2 text-sm font-medium text-ink transition hover:border-accent"
+                    className="studio-button border border-line px-3 py-2 text-sm font-semibold text-ink hover:border-accent"
                   >
                     二次编辑
                   </a>
                   <a
                     href={`/create?draftId=${draft.id}&publish=true`}
-                    className="rounded-md bg-accent px-3 py-2 text-sm font-medium text-white transition hover:bg-[#176854]"
+                    className="studio-button bg-accent px-3 py-2 text-sm font-semibold text-white shadow-crisp hover:bg-sidebar"
                   >
                     更新发布
                   </a>
@@ -133,7 +134,7 @@ export default async function PostsPage({
           )}
         </div>
       ) : (
-        <div className="overflow-hidden rounded-lg border border-line bg-white/85 shadow-soft">
+        <div className="studio-panel overflow-hidden">
           {visiblePosts.length === 0 ? (
             <div className="p-6 text-sm text-muted">
               {activeStatus === "rejected" ? "暂无被驳回内容。" : "暂无已发布内容。"}
@@ -163,19 +164,19 @@ export default async function PostsPage({
                 <div className="flex flex-wrap items-center gap-2 xl:justify-end">
                   <a
                     href={`/create?postId=${post.id}`}
-                    className="rounded-md border border-line px-3 py-2 text-sm font-medium text-ink transition hover:border-accent"
+                    className="studio-button border border-line px-3 py-2 text-sm font-semibold text-ink hover:border-accent"
                   >
                     二次编辑
                   </a>
                   <a
                     href={`/review?postId=${post.id}`}
-                    className="rounded-md border border-line px-3 py-2 text-sm font-medium text-ink transition hover:border-accent"
+                    className="studio-button border border-line px-3 py-2 text-sm font-semibold text-ink hover:border-accent"
                   >
                     重新审核
                   </a>
                   <a
                     href={`/content/${post.id}`}
-                    className="rounded-md bg-accent px-3 py-2 text-sm font-medium text-white transition hover:bg-[#176854]"
+                    className="studio-button bg-accent px-3 py-2 text-sm font-semibold text-white shadow-crisp hover:bg-sidebar"
                   >
                     查看详情
                   </a>

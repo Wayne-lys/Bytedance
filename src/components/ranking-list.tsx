@@ -71,33 +71,35 @@ export function RankingList({
   }, [loadMore]);
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
       {items.map((item, index) => (
         <article
           key={`${type}-${item.postId}`}
-          className="grid gap-4 rounded-lg border border-line bg-white/85 p-4 shadow-soft md:grid-cols-[auto_minmax(0,1fr)_180px]"
+          className="studio-tile grid gap-4 p-4 transition hover:-translate-y-0.5 hover:border-accent md:grid-cols-[72px_minmax(0,1fr)_210px]"
         >
-          <span className="flex size-11 items-center justify-center rounded-md bg-accent text-sm font-semibold text-white">
-            {index + 1}
-          </span>
+          <div className="flex size-[72px] items-center justify-center rounded-md bg-sidebar text-2xl font-semibold text-white shadow-crisp">
+            {String(index + 1).padStart(2, "0")}
+          </div>
 
           <a href={`/content/${item.postId}`} className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
-              <h3 className="text-lg font-semibold text-ink">{item.title}</h3>
+              <h3 className="text-xl font-semibold text-ink">{item.title}</h3>
               <StatusBadge tone="safe">{typeLabel[type]}</StatusBadge>
             </div>
-            <p className="mt-2 line-clamp-2 text-sm leading-6 text-muted">
+            <p className="mt-3 line-clamp-2 text-sm leading-6 text-muted">
               {item.body}
             </p>
-            <p className="mt-3 text-xs text-muted">
-              {item.authorName} · {item.tags?.join(" / ")} · {formatNumber(item.views)} 阅读
+            <p className="mt-4 text-xs text-muted">
+              {item.authorName} / {item.tags?.join(" / ")} / {formatNumber(item.views)} 阅读
             </p>
           </a>
 
-          <div className="rounded-md border border-line bg-[#fbfaf6] p-3">
-            <p className="text-xs text-muted">综合分</p>
-            <p className="mt-1 text-2xl font-semibold text-ink">{item.rankingScore}</p>
-            <div className="mt-3 grid grid-cols-2 gap-2 text-xs text-muted">
+          <div className="rounded-md border border-line bg-panel-muted p-4">
+            <p className="text-xs font-semibold text-accent">Ranking Score</p>
+            <p className="mt-2 text-4xl font-semibold leading-none text-ink">
+              {item.rankingScore}
+            </p>
+            <div className="mt-4 grid grid-cols-2 gap-2 text-xs text-muted">
               <span>质量 {item.explanation.qualityContribution}</span>
               <span>热度 {item.explanation.heatContribution}</span>
               <span>新鲜 {item.explanation.freshnessContribution}</span>
@@ -107,13 +109,13 @@ export function RankingList({
         </article>
       ))}
 
-      <div ref={sentinelRef} className="flex min-h-12 items-center justify-center">
+      <div ref={sentinelRef} className="flex min-h-16 items-center justify-center">
         {nextCursor ? (
           <button
             type="button"
             onClick={() => void loadMore()}
             disabled={loading}
-            className="rounded-md border border-line bg-white px-4 py-2 text-sm font-medium text-ink transition hover:border-accent disabled:cursor-not-allowed disabled:opacity-60"
+            className="studio-button border border-line bg-panel px-5 py-2.5 text-sm font-semibold text-ink hover:border-accent disabled:cursor-not-allowed disabled:opacity-60"
           >
             {loading ? "加载中" : "加载更多"}
           </button>

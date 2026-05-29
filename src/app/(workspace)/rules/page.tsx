@@ -37,10 +37,11 @@ export default async function RulesPage() {
 
   return (
     <section className="space-y-5">
-      <div className="rounded-lg border border-line bg-white/85 p-6 shadow-soft">
+      <div className="studio-panel p-6">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <h2 className="text-2xl font-semibold text-ink">规则体系</h2>
+            <p className="text-xs font-semibold text-accent">Policy System</p>
+            <h2 className="mt-2 text-3xl font-semibold text-ink">规则体系</h2>
             <p className="mt-2 max-w-3xl text-sm leading-6 text-muted">
               规则库明确高危拦截、人工复核、合规改写和低风险提示边界；质量评分维度用于创作反馈、审核报告和榜单排序。
             </p>
@@ -54,11 +55,11 @@ export default async function RulesPage() {
       </div>
 
       <div className="grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
-        <section className="rounded-lg border border-line bg-white/85 p-6 shadow-soft">
+        <section className="studio-panel p-6">
           <h3 className="text-xl font-semibold text-ink">内容安全规则</h3>
           <div className="mt-5 grid gap-3">
             {rules.map((rule) => (
-              <article key={rule.id} className="rounded-lg border border-line bg-[#fbfaf6] p-4">
+              <article key={rule.id} className="studio-tile p-4">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div>
                     <h4 className="font-semibold text-ink">{rule.category}</h4>
@@ -67,7 +68,7 @@ export default async function RulesPage() {
                   <StatusBadge tone={ruleTone(rule.riskLevel)}>{rule.riskLevel}</StatusBadge>
                 </div>
                 <p className="mt-3 text-sm leading-6 text-muted">{rule.description}</p>
-                <p className="mt-3 rounded-md border border-line bg-white px-3 py-2 text-xs text-muted">
+                <p className="mt-3 rounded-md border border-line bg-panel-muted px-3 py-2 text-xs text-muted">
                   识别模式：{rule.pattern}
                 </p>
               </article>
@@ -75,11 +76,11 @@ export default async function RulesPage() {
           </div>
         </section>
 
-        <section className="rounded-lg border border-line bg-white/85 p-6 shadow-soft">
+        <section className="studio-panel p-6">
           <h3 className="text-xl font-semibold text-ink">质量评分维度</h3>
           <div className="mt-5 space-y-3">
             {qualityDimensions.map((dimension) => (
-              <article key={dimension.name} className="rounded-lg border border-line bg-[#fbfaf6] p-4">
+              <article key={dimension.name} className="studio-tile p-4">
                 <h4 className="font-semibold text-ink">{dimension.name}</h4>
                 <p className="mt-2 text-sm leading-6 text-muted">{dimension.description}</p>
               </article>

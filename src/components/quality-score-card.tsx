@@ -19,10 +19,13 @@ const labels: Array<[keyof QualityScore, string]> = [
 
 export function QualityScoreCard({ score }: { score: QualityScore }) {
   return (
-    <div className="rounded-lg border border-line bg-white p-4">
-      <div className="flex items-end justify-between">
-        <p className="text-sm text-muted">质量总分</p>
-        <p className="text-3xl font-semibold text-ink">{score.total}</p>
+    <div className="studio-tile p-4">
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <p className="text-xs font-semibold text-accent">Quality Index</p>
+          <p className="mt-1 text-sm text-muted">质量总分</p>
+        </div>
+        <p className="text-4xl font-semibold leading-none text-ink">{score.total}</p>
       </div>
       <div className="mt-4 space-y-3">
         {labels.map(([key, label]) => (
@@ -31,9 +34,9 @@ export function QualityScoreCard({ score }: { score: QualityScore }) {
               <span>{label}</span>
               <span>{score[key]}</span>
             </div>
-            <div className="mt-1 h-2 rounded-full bg-[#e7e2d6]">
+            <div className="mt-1 h-2 rounded-full bg-line/70">
               <div
-                className="h-2 rounded-full bg-accent"
+                className="h-2 rounded-full bg-teal"
                 style={{ width: `${score[key]}%` }}
               />
             </div>

@@ -18,8 +18,9 @@ export default async function ReviewPage() {
 
   return (
     <section className="grid gap-4 lg:grid-cols-[0.95fr_1.05fr]">
-      <div className="rounded-lg border border-line bg-white/85 p-6 shadow-soft">
-        <h2 className="text-2xl font-semibold text-ink">审核与质量</h2>
+      <div className="studio-panel p-6">
+        <p className="text-xs font-semibold text-accent">Review Desk</p>
+        <h2 className="mt-2 text-3xl font-semibold text-ink">审核与质量</h2>
         <p className="mt-2 text-sm leading-6 text-muted">
           这里会展示风险等级、命中规则、质量分和合规改写前后对比。
         </p>
@@ -31,7 +32,7 @@ export default async function ReviewPage() {
 
       <div className="space-y-3">
         {results.map((result) => (
-          <article key={result.id} className="rounded-lg border border-line bg-white/85 p-5">
+          <article key={result.id} className="studio-tile p-5">
             <div className="flex items-center justify-between gap-3">
               <h3 className="font-semibold text-ink">{result.post.title}</h3>
               <StatusBadge tone={result.riskLevel === "safe" ? "safe" : "warning"}>

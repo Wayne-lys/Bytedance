@@ -31,9 +31,9 @@ export default async function ContentDetailPage({
   const readCount = post.rankingMetric?.views ?? 0;
 
   return (
-    <main className="min-h-screen px-5 py-6 sm:px-8 lg:px-10" data-testid="content-detail-page">
+    <main className="min-h-screen p-4 sm:p-6" data-testid="content-detail-page">
       <article className="mx-auto grid max-w-6xl gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
-        <section className="rounded-lg border border-line bg-white/90 p-6 shadow-soft sm:p-8">
+        <section className="studio-panel p-6 sm:p-8">
           <div className="flex flex-wrap items-center gap-3">
             <StatusBadge tone="safe">已发布</StatusBadge>
             <span className="text-sm text-muted">{formatDate(post.publishedAt)}</span>
@@ -56,7 +56,7 @@ export default async function ContentDetailPage({
               alt=""
               width={960}
               height={540}
-              className="mt-6 aspect-[16/9] w-full rounded-lg border border-line object-cover"
+              className="mt-6 aspect-[16/9] w-full rounded-lg border border-line object-cover shadow-crisp"
             />
           ) : null}
 
@@ -68,7 +68,7 @@ export default async function ContentDetailPage({
             {post.tags.map((tag) => (
               <span
                 key={tag}
-                className="rounded-full border border-line bg-[#fbfaf6] px-3 py-1 text-sm text-muted"
+                className="rounded-md border border-line bg-panel-muted px-3 py-1 text-sm text-muted"
               >
                 #{tag}
               </span>
@@ -77,8 +77,9 @@ export default async function ContentDetailPage({
         </section>
 
         <aside className="space-y-4">
-          <div className="rounded-lg border border-line bg-white/90 p-5 shadow-soft">
-            <p className="text-sm text-muted">内容状态</p>
+          <div className="studio-panel p-5">
+            <p className="text-xs font-semibold text-accent">Reader View</p>
+            <p className="mt-2 text-sm text-muted">内容状态</p>
             <p className="mt-2 text-xl font-semibold text-ink">审核通过，可分发</p>
             <p className="mt-3 text-sm leading-6 text-muted">
               详情页聚合了创作者、发布时间、正文、标签和质量评分，满足内容消费侧展示要求。
@@ -88,14 +89,14 @@ export default async function ContentDetailPage({
           {post.qualitySummary ? (
             <QualityScoreCard score={post.qualitySummary} />
           ) : (
-            <div className="rounded-lg border border-line bg-white/90 p-5 text-sm text-muted shadow-soft">
+            <div className="studio-tile p-5 text-sm text-muted">
               暂无质量评分。
             </div>
           )}
 
           <a
             href="/posts"
-            className="inline-flex h-10 w-full items-center justify-center rounded-md border border-line bg-white text-sm font-medium text-ink transition hover:border-accent"
+            className="studio-button inline-flex h-10 w-full items-center justify-center border border-line bg-panel text-sm font-semibold text-ink hover:border-accent"
           >
             返回内容管理
           </a>
