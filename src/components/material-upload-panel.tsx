@@ -41,6 +41,23 @@ function getErrorMessage(error: unknown) {
   return error instanceof Error ? error.message : "上传失败，请稍后重试";
 }
 
+function readFileAsDataUrl(file: File) {
+  return new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+
+    reader.onload = () => {
+      if (typeof reader.result === "string") {
+        resolve(reader.result);
+        return;
+      }
+
+      reject(new Error("图片预览读取失败"));
+    };
+    reader.onerror = () => reject(new Error("图片预览读取失败"));
+    reader.readAsDataURL(file);
+  });
+}
+
 export function MaterialUploadPanel() {
   const router = useRouter();
   const nameId = useId();
@@ -51,6 +68,8 @@ export function MaterialUploadPanel() {
   const [name, setName] = useState("新素材.png");
   const [type, setType] = useState("image/png");
   const [size, setSize] = useState("120000");
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [uploadState, setUploadState] = useState<UploadState>({ status: "idle" });
 
   async function uploadMaterial(event: FormEvent<HTMLFormElement>) {
@@ -78,13 +97,16 @@ export function MaterialUploadPanel() {
     setUploadState({ status: "submitting" });
 
     try {
+      const materialUrl = previewUrl ?? (selectedFile ? await readFileAsDataUrl(selectedFile) : null);
+
       const response = await fetch("/api/materials", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name: materialName,
           type: materialType,
-          size: materialSize
+          size: materialSize,
+          url: materialUrl ?? undefined
         })
       });
       const payload = (await response.json()) as MaterialUploadResponse;
@@ -99,6 +121,12 @@ export function MaterialUploadPanel() {
         compliance: normalizeCompliance(material.compliance),
         riskReason: material.riskReason ?? null
       });
+      setIsOpen(false);
+      setName("新素材.png");
+      setType("image/png");
+      setSize("120000");
+      setSelectedFile(null);
+      setPreviewUrl(null);
       router.refresh();
     } catch (error) {
       setUploadState({ status: "error", message: getErrorMessage(error) });
@@ -119,6 +147,21 @@ export function MaterialUploadPanel() {
         上传素材
       </button>
 
+      {!isOpen && uploadState.status === "success" ? (
+        <div className="mt-3 rounded-md border border-teal/20 bg-teal/10 px-3 py-2 text-sm text-teal sm:absolute sm:right-0 sm:top-12 sm:z-20 sm:mt-0 sm:w-72">
+          <div className="flex items-center justify-between gap-3">
+            <span className="font-semibold">上传成功，素材已加入列表</span>
+            <StatusBadge tone={uploadState.compliance}>
+              {complianceLabel[uploadState.compliance]}
+            </StatusBadge>
+          </div>
+          <p className="mt-1">合规状态：{complianceLabel[uploadState.compliance]}</p>
+          {uploadState.riskReason ? (
+            <p className="mt-1 text-muted">{uploadState.riskReason}</p>
+          ) : null}
+        </div>
+      ) : null}
+
       {isOpen ? (
         <form
           onSubmit={uploadMaterial}
@@ -133,7 +176,7 @@ export function MaterialUploadPanel() {
               type="file"
               accept="image/png,image/jpeg,image/webp,image/svg+xml"
               className="studio-input mt-2 w-full px-3 py-2 text-sm"
-              onChange={(event) => {
+              onChange={async (event) => {
                 const file = event.target.files?.[0];
 
                 if (!file) {
@@ -143,10 +186,24 @@ export function MaterialUploadPanel() {
                 setName(file.name);
                 setType(file.type || "image/png");
                 setSize(String(file.size || 1));
+                setSelectedFile(file);
                 setUploadState({ status: "idle" });
+
+                try {
+                  setPreviewUrl(await readFileAsDataUrl(file));
+                } catch (error) {
+                  setPreviewUrl(null);
+                  setUploadState({ status: "error", message: getErrorMessage(error) });
+                }
               }}
             />
           </div>
+
+          {previewUrl ? (
+            <div className="overflow-hidden rounded-md border border-line bg-panel-muted">
+              <img src={previewUrl} alt="素材预览" className="h-36 w-full object-cover" />
+            </div>
+          ) : null}
 
           <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_120px]">
             <div>

@@ -13,6 +13,7 @@ vi.mock("next/navigation", () => ({
 describe("material upload panel", () => {
   beforeEach(() => {
     refreshMock.mockReset();
+    vi.unstubAllGlobals();
     vi.stubGlobal(
       "fetch",
       vi.fn().mockResolvedValue(
@@ -34,6 +35,19 @@ describe("material upload panel", () => {
           }
         )
       )
+    );
+    vi.stubGlobal(
+      "FileReader",
+      class {
+        result: string | ArrayBuffer | null = null;
+        onload: (() => void) | null = null;
+        onerror: (() => void) | null = null;
+
+        readAsDataURL() {
+          this.result = "data:image/png;base64,preview-image";
+          this.onload?.();
+        }
+      }
     );
   });
 
@@ -67,9 +81,41 @@ describe("material upload panel", () => {
       type: "image/png",
       size: 234567
     });
-    expect(await screen.findByText("上传成功")).toBeInTheDocument();
+    expect(await screen.findByText("上传成功，素材已加入列表")).toBeInTheDocument();
     expect(screen.getByText("合规状态：预警")).toBeInTheDocument();
     expect(screen.getByText("文件名包含可能导流或高风险词：扫码")).toBeInTheDocument();
+    expect(screen.queryByLabelText("素材名称")).not.toBeInTheDocument();
+    expect(refreshMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("sends the selected image preview url and closes the form after upload", async () => {
+    render(<MaterialUploadPanel />);
+
+    fireEvent.click(screen.getByRole("button", { name: "上传素材" }));
+    fireEvent.change(screen.getByLabelText("本地文件"), {
+      target: {
+        files: [
+          new File(["preview"], "真实图片.png", {
+            type: "image/png"
+          })
+        ]
+      }
+    });
+    fireEvent.click(screen.getByRole("button", { name: "确认上传" }));
+
+    await waitFor(() => {
+      expect(fetch).toHaveBeenCalled();
+    });
+
+    const request = vi.mocked(fetch).mock.calls[0]?.[1];
+    expect(JSON.parse(String(request?.body))).toMatchObject({
+      name: "真实图片.png",
+      type: "image/png",
+      size: 7,
+      url: "data:image/png;base64,preview-image"
+    });
+    expect(await screen.findByText("上传成功，素材已加入列表")).toBeInTheDocument();
+    expect(screen.queryByLabelText("素材名称")).not.toBeInTheDocument();
     expect(refreshMock).toHaveBeenCalledTimes(1);
   });
 });
