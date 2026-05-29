@@ -1,4 +1,5 @@
 import { StatusBadge } from "@/components/status-badge";
+import { MaterialDeleteButton } from "@/components/material-delete-button";
 
 type MaterialCard = {
   id: string;
@@ -71,6 +72,11 @@ export function MaterialPicker({ materials }: { materials: MaterialCard[] }) {
               <p className="text-sm leading-6 text-muted">
                 {formatRiskReason(material.riskReason)}
               </p>
+              <MaterialDeleteButton
+                id={material.id}
+                name={material.name}
+                referenceCount={material.referenceCount}
+              />
             </div>
           </div>
         </article>
