@@ -215,8 +215,8 @@ export function CreationStudio({ prompts }: { prompts: PromptTemplate[] }) {
   });
 
   return (
-    <section className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_390px]">
-      <div className="studio-panel overflow-hidden">
+    <section className="grid gap-5 xl:h-[calc(100vh-14rem)] xl:min-h-[640px] xl:grid-cols-[minmax(0,1fr)_390px] xl:items-stretch xl:overflow-hidden">
+      <div className="studio-panel flex min-h-0 flex-col overflow-hidden">
         <div className="border-b border-line bg-sidebar px-5 py-4 text-white md:px-6">
           <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <div>
@@ -230,7 +230,7 @@ export function CreationStudio({ prompts }: { prompts: PromptTemplate[] }) {
           </div>
         </div>
 
-        <div className="grid gap-6 p-5 md:p-6">
+        <div className="grid min-h-0 flex-1 gap-6 overflow-y-auto p-5 md:p-6">
           <div className="grid gap-4 md:grid-cols-2">
             {fieldRows.map(([key, label, placeholder]) => (
               <label key={key} className="block">
@@ -329,7 +329,7 @@ export function CreationStudio({ prompts }: { prompts: PromptTemplate[] }) {
         </div>
       </div>
 
-      <aside className="space-y-5">
+      <aside className="min-h-0 space-y-5 xl:overflow-y-auto xl:overscroll-contain xl:pr-1">
         <section className="studio-panel p-5">
           <div className="flex items-center justify-between gap-3">
             <div>
