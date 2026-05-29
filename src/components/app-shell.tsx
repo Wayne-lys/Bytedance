@@ -26,23 +26,23 @@ export function AppShell({
   const pathname = usePathname();
 
   return (
-    <main className="min-h-screen p-3 sm:p-5">
-      <div className="mx-auto grid max-w-[1500px] gap-4 lg:grid-cols-[278px_minmax(0,1fr)]">
-        <aside className="overflow-hidden rounded-lg bg-sidebar text-[#f6efe4] shadow-soft lg:sticky lg:top-5 lg:h-[calc(100vh-2.5rem)]">
+    <main className="min-h-screen p-3 sm:p-4">
+      <div className="mx-auto grid max-w-[1720px] gap-4 lg:grid-cols-[252px_minmax(0,1fr)]">
+        <aside className="overflow-hidden rounded-lg bg-sidebar text-[#f6efe4] shadow-soft lg:sticky lg:top-4 lg:h-[calc(100vh-2rem)]">
           <div className="flex h-full flex-col">
-            <a href="/" className="border-b border-white/10 p-5">
+            <a href="/" className="border-b border-white/10 p-4">
               <div className="flex items-center gap-3">
-                <span className="flex size-11 items-center justify-center rounded-md bg-accent text-base font-semibold text-white shadow-crisp">
+                <span className="flex size-10 items-center justify-center rounded-md bg-accent text-base font-semibold text-white shadow-crisp">
                   AI
                 </span>
                 <div>
-                  <p className="text-sm font-semibold">Toutiao Studio</p>
+                  <p className="text-sm font-semibold leading-5">Toutiao Studio</p>
                   <p className="mt-1 text-xs text-[#cbbfb1]">Creator Ops Console</p>
                 </div>
               </div>
             </a>
 
-            <nav className="flex gap-2 overflow-x-auto border-b border-white/10 p-3 lg:flex-1 lg:flex-col lg:overflow-visible lg:border-b-0 lg:p-4" aria-label="工作区导航">
+            <nav className="flex gap-2 overflow-x-auto border-b border-white/10 p-3 lg:flex-1 lg:flex-col lg:overflow-visible lg:border-b-0" aria-label="工作区导航">
               {navItems.map((item) => {
                 const active = pathname === item.href;
 
@@ -50,7 +50,7 @@ export function AppShell({
                   <a
                     key={item.href}
                     href={item.href}
-                    className={`group flex min-w-32 shrink-0 items-center gap-3 rounded-md border px-3 py-3 text-sm transition lg:min-w-0 ${
+                    className={`group flex min-w-32 shrink-0 items-center gap-3 rounded-md border px-3 py-2.5 text-sm transition lg:min-w-0 ${
                       active
                         ? "border-accent bg-accent text-white shadow-crisp"
                         : "border-white/10 bg-white/[0.035] text-[#d9cec2] hover:border-white/25 hover:bg-white/[0.08] hover:text-white"
@@ -62,17 +62,17 @@ export function AppShell({
                     >
                       {item.index}
                     </span>
-                    <span className="font-medium">{item.label}</span>
+                    <span className="font-medium leading-5">{item.label}</span>
                   </a>
                 );
               })}
             </nav>
 
-            <div className="hidden border-t border-white/10 p-4 lg:block">
-              <div className="rounded-md border border-white/10 bg-white/[0.04] p-4">
+            <div className="hidden border-t border-white/10 p-3 lg:block">
+              <div className="rounded-md border border-white/10 bg-white/[0.04] p-3.5">
                 <p className="text-xs text-[#cbbfb1]">交付状态</p>
-                <p className="mt-2 text-lg font-semibold text-white">MVP + 进阶挑战</p>
-                <div className="mt-4 h-1.5 rounded-full bg-white/10">
+                <p className="mt-2 text-base font-semibold text-white">MVP + 进阶挑战</p>
+                <div className="mt-3 h-1.5 rounded-full bg-white/10">
                   <div className="h-1.5 w-full rounded-full bg-accent" />
                 </div>
               </div>
@@ -81,14 +81,14 @@ export function AppShell({
         </aside>
 
         <section className="min-w-0 rounded-lg border border-line bg-paper/80 shadow-soft">
-          <header className="border-b border-line bg-panel/78 px-5 py-5 backdrop-blur md:px-7">
-            <div className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
+          <header className="border-b border-line bg-panel/78 px-5 py-4 backdrop-blur md:px-6">
+            <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
               <div className="max-w-4xl">
                 <p className="text-xs font-semibold text-accent">{eyebrow}</p>
-                <h1 className="mt-3 text-3xl font-semibold leading-tight text-ink sm:text-4xl">
+                <h1 className="mt-2 text-2xl font-semibold leading-tight text-ink sm:text-3xl">
                   {title}
                 </h1>
-                <p className="mt-3 max-w-3xl text-sm leading-6 text-muted sm:text-base">
+                <p className="mt-2 max-w-3xl text-sm leading-6 text-muted">
                   {description}
                 </p>
               </div>
@@ -110,7 +110,7 @@ export function AppShell({
             </div>
           </header>
 
-          <div className="px-5 py-5 md:px-7 md:py-7">{children}</div>
+          <div className="px-5 py-5 md:px-6 md:py-6">{children}</div>
         </section>
       </div>
     </main>

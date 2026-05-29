@@ -31,7 +31,12 @@ body {
   background-size: 44px 44px, 44px 44px, auto;
   color: var(--foreground);
   font-family:
-    Aptos, "Microsoft YaHei UI", "Noto Sans SC", "PingFang SC", sans-serif;
+    "Microsoft YaHei UI", "Microsoft YaHei", "Noto Sans SC", "PingFang SC",
+    "Hiragino Sans GB", ui-sans-serif, system-ui, sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
 }
 
 a {
@@ -56,14 +61,14 @@ select {
     border-radius: 8px;
     background:
       linear-gradient(180deg, rgb(255 253 247 / 0.96), rgb(248 244 235 / 0.94));
-    box-shadow: 0 24px 70px rgb(36 31 26 / 0.1);
+    box-shadow: 0 18px 48px rgb(36 31 26 / 0.08);
   }
 
   .studio-tile {
     border: 1px solid rgb(215 204 189 / 0.9);
     border-radius: 8px;
     background: rgb(255 253 247 / 0.9);
-    box-shadow: 0 14px 36px rgb(36 31 26 / 0.07);
+    box-shadow: 0 10px 26px rgb(36 31 26 / 0.055);
   }
 
   .studio-input {
