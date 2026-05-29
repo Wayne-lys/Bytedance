@@ -1,4 +1,5 @@
 import { MaterialPicker } from "@/components/material-picker";
+import { MaterialUploadPanel } from "@/components/material-upload-panel";
 import { listMaterials } from "@/features/materials/material-service";
 
 export default async function MaterialsPage() {
@@ -14,9 +15,7 @@ export default async function MaterialsPage() {
             展示种子素材和合规结果，创作台可以引用这些素材完成短图文生成。
           </p>
         </div>
-        <button className="studio-button h-10 bg-accent px-4 text-sm font-semibold text-white shadow-crisp hover:bg-sidebar">
-          上传素材
-        </button>
+        <MaterialUploadPanel />
       </div>
 
       <div className="mt-6">
