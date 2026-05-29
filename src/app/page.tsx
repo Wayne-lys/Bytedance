@@ -47,7 +47,7 @@ const modules = [
     title: "审核与质量",
     href: "/review",
     description: "展示风险命中、质量评分和一键合规改写结果。",
-    status: "安全防火墙"
+    status: "安全闭环"
   },
   {
     title: "热点榜单",
@@ -64,7 +64,7 @@ export default async function Home() {
     <AppShell
       eyebrow="Toutiao AI Frontend Camp"
       title="AI 创作者工作台"
-      description="当前基线已经接入本地数据库、演示账号和认证接口；后续任务会继续把素材、创作、审核、发布和榜单串成完整闭环。"
+      description="本地数据、演示账号和核心 API 已串成创作、审核、发布、榜单和评估闭环。"
     >
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         {metrics.map((metric) => (
@@ -87,10 +87,10 @@ export default async function Home() {
             <div>
               <h2 className="text-2xl font-semibold text-ink">演示主链路</h2>
               <p className="mt-2 text-sm leading-6 text-muted">
-                从登录到发布分发的关键能力会按实施计划逐步接入。当前页面先提供清晰入口和种子指标。
+                从登录到发布分发的关键能力已经接入真实本地数据库和可回归测试。
               </p>
             </div>
-            <StatusBadge tone="safe">Task 4</StatusBadge>
+            <StatusBadge tone="safe">MVP</StatusBadge>
           </div>
 
           <div className="mt-6 grid gap-3 sm:grid-cols-2">

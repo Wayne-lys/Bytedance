@@ -9,5 +9,5 @@ export function OfflineSyncIndicator({ state }: { state: string }) {
     return <StatusBadge tone="neutral">正在同步</StatusBadge>;
   }
 
-  return <StatusBadge tone="safe">已自动保存</StatusBadge>;
+  return <StatusBadge tone="safe">已同步</StatusBadge>;
 }

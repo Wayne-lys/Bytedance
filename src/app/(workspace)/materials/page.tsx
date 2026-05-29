@@ -10,7 +10,7 @@ export default async function MaterialsPage() {
         <div>
           <h2 className="text-2xl font-semibold text-ink">素材库</h2>
           <p className="mt-2 text-sm text-muted">
-            当前展示种子素材；后续任务会接入上传、合规校验和创作引用。
+            展示种子素材和合规结果，创作台可以引用这些素材完成短图文生成。
           </p>
         </div>
         <button className="h-10 rounded-md bg-accent px-4 text-sm font-medium text-white">

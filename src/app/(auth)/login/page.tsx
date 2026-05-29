@@ -1,15 +1,31 @@
-const authModes = [
-  {
-    title: "邮箱密码",
-    description: "适合正式账号体系，密码会以哈希形式保存。"
-  },
-  {
-    title: "手机验证码",
-    description: "训练营演示模式下验证码会直接返回，模拟短信登录。"
-  }
-];
+"use client";
+
+import { useState } from "react";
 
 export default function LoginPage() {
+  const [email, setEmail] = useState("creator@example.com");
+  const [password, setPassword] = useState("Demo123456");
+  const [error, setError] = useState("");
+
+  async function login(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setError("");
+
+    const response = await fetch("/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ type: "email", email, password })
+    });
+    const payload = await response.json();
+
+    if (!payload.ok) {
+      setError(payload.error ?? "登录失败");
+      return;
+    }
+
+    window.location.href = "/";
+  }
+
   return (
     <main className="min-h-screen bg-paper px-6 py-10">
       <section className="mx-auto grid max-w-5xl gap-8 lg:grid-cols-[0.95fr_1.05fr]">
@@ -26,14 +42,33 @@ export default function LoginPage() {
         </div>
 
         <div className="rounded-lg border border-line bg-white p-6 shadow-soft">
-          <div className="grid gap-3 sm:grid-cols-2">
-            {authModes.map((mode) => (
-              <div key={mode.title} className="rounded-lg border border-line p-4">
-                <h2 className="text-lg font-semibold text-ink">{mode.title}</h2>
-                <p className="mt-2 text-sm leading-6 text-muted">{mode.description}</p>
-              </div>
-            ))}
-          </div>
+          <form onSubmit={login} className="space-y-4">
+            <label className="block">
+              <span className="text-sm font-medium text-ink">邮箱</span>
+              <input
+                type="email"
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
+                className="mt-2 h-11 w-full rounded-md border border-line bg-[#fbfaf6] px-3 text-sm outline-none focus:border-accent"
+              />
+            </label>
+            <label className="block">
+              <span className="text-sm font-medium text-ink">密码</span>
+              <input
+                type="password"
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+                className="mt-2 h-11 w-full rounded-md border border-line bg-[#fbfaf6] px-3 text-sm outline-none focus:border-accent"
+              />
+            </label>
+            {error ? <p className="text-sm text-red-600">{error}</p> : null}
+            <button
+              type="submit"
+              className="h-11 w-full rounded-md bg-accent px-4 text-sm font-medium text-white transition hover:bg-[#176854]"
+            >
+              登录
+            </button>
+          </form>
 
           <div className="mt-6 rounded-lg bg-[#f7f5ef] p-5">
             <p className="text-sm font-medium text-ink">演示账号</p>
