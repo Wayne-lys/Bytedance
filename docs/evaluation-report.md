@@ -9,6 +9,34 @@ The evaluation dashboard computes metrics from `EvaluationCase` records at runti
 - Review loop: risky samples are passed through the same local moderation rules used by publishing
 - Rewrite loop: medium/high risk cases include before/after compliant rewrite samples
 
+Current automated evaluation is covered by:
+
+```bash
+npm run test -- tests/unit/evaluation-service.test.ts tests/api/evaluation.test.ts
+```
+
+The seeded test set includes safe, medium-risk, and high-risk cases. High-risk cases are expected to be identified at 90%+ accuracy.
+
+## Generation Examples
+
+The creation studio can generate short image-text content from:
+
+- Topic
+- Audience
+- Platform
+- Style
+- Prompt template
+- Optional materials
+
+When external AI configuration is absent or unstable, deterministic mock generation keeps the demo flow available. This is intentional for review stability.
+
+## Prompt Tuning Notes
+
+- Put platform, audience, risk boundary, and material constraints in the prompt.
+- Treat `medium` and `high` moderation hits as rewrite triggers.
+- Ask for concrete scenes and numbered suggestions to improve structure and information density.
+- Keep interaction prompts compliant and avoid private-contact or gambling-like language.
+
 ## Ranking Formula
 
 The ranking score is calculated as:
@@ -35,8 +63,8 @@ LCP <= 2500ms
 
 Latest local verification on 2026-05-29:
 
-- `/rankings`: 444ms
-- `/content/[id]`: 1144ms
+- `/rankings`: 464ms
+- `/content/[id]`: 1336ms
 
 Exact millisecond values are also printed by the Playwright test because local hardware and background load can vary.
 
