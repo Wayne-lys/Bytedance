@@ -1,43 +1,88 @@
-import { StatusBadge } from "@/components/status-badge";
-import { prisma } from "@/lib/db";
+import { RankingList } from "@/components/ranking-list";
+import {
+  getRankingItems,
+  type RankingType
+} from "@/features/ranking/ranking-service";
 
-export default async function RankingsPage() {
-  const metrics = await prisma.rankingMetric.findMany({
-    orderBy: { rankingScore: "desc" },
-    include: { post: { include: { qualityScore: true } } }
+const tabs: Array<{ id: RankingType; label: string; description: string }> = [
+  {
+    id: "hot",
+    label: "热点榜",
+    description: "按实时热度、质量和新鲜度综合排序。"
+  },
+  {
+    id: "viral",
+    label: "爆文榜",
+    description: "突出高互动内容，适合展示传播潜力。"
+  },
+  {
+    id: "recommended",
+    label: "推荐流",
+    description: "平衡质量、安全和用户反馈，模拟信息流推荐。"
+  }
+];
+
+function normalizeType(type: string | undefined): RankingType {
+  if (type === "viral" || type === "recommended") {
+    return type;
+  }
+
+  return "hot";
+}
+
+export default async function RankingsPage({
+  searchParams
+}: {
+  searchParams?: { type?: string };
+}) {
+  const activeType = normalizeType(searchParams?.type);
+  const ranking = await getRankingItems({
+    type: activeType,
+    limit: 6
   });
 
   return (
-    <section className="rounded-lg border border-line bg-white/85 p-6 shadow-soft">
-      <div className="flex items-center justify-between gap-4">
-        <div>
-          <h2 className="text-2xl font-semibold text-ink">热点榜单</h2>
-          <p className="mt-2 text-sm text-muted">
-            当前展示种子榜单；后续会接入热点榜、爆文榜、推荐流和无限滚动。
-          </p>
+    <section className="space-y-5">
+      <div className="rounded-lg border border-line bg-white/85 p-6 shadow-soft">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+          <div>
+            <h2 className="text-2xl font-semibold text-ink">热点与推荐榜单</h2>
+            <p className="mt-2 max-w-3xl text-sm leading-6 text-muted">
+              榜单综合质量分、热度、发布时间新鲜度、用户反馈和风险惩罚，支持 cursor 分页和滚动加载。
+            </p>
+          </div>
+          <div className="rounded-md border border-line bg-[#fbfaf6] px-4 py-3 text-sm text-muted">
+            公式：质量 45% · 热度 30% · 新鲜度 15% · 反馈 10%
+          </div>
         </div>
-        <StatusBadge tone="safe">智能排序</StatusBadge>
+
+        <nav className="mt-6 flex gap-2 overflow-x-auto" aria-label="榜单类型">
+          {tabs.map((tab) => {
+            const active = activeType === tab.id;
+
+            return (
+              <a
+                key={tab.id}
+                href={`/rankings?type=${tab.id}`}
+                className={`min-w-40 shrink-0 rounded-md border px-4 py-3 transition ${
+                  active
+                    ? "border-accent bg-accent text-white"
+                    : "border-line bg-white text-muted hover:border-accent hover:text-ink"
+                }`}
+              >
+                <span className="block text-sm font-semibold">{tab.label}</span>
+                <span className="mt-1 block text-xs opacity-80">{tab.description}</span>
+              </a>
+            );
+          })}
+        </nav>
       </div>
 
-      <div className="mt-6 space-y-3">
-        {metrics.map((metric, index) => (
-          <article
-            key={metric.id}
-            className="grid gap-4 rounded-lg border border-line bg-[#fbfaf6] p-4 md:grid-cols-[auto_1fr_auto]"
-          >
-            <span className="flex size-10 items-center justify-center rounded-md bg-accent text-sm font-semibold text-white">
-              {index + 1}
-            </span>
-            <div>
-              <h3 className="font-semibold text-ink">{metric.post.title}</h3>
-              <p className="mt-1 text-sm text-muted">
-                质量 {metric.post.qualityScore?.total ?? 0} · 热度 {metric.heatScore} · 新鲜度 {metric.freshnessScore}
-              </p>
-            </div>
-            <p className="text-xl font-semibold text-ink">{metric.rankingScore}</p>
-          </article>
-        ))}
-      </div>
+      <RankingList
+        type={activeType}
+        initialItems={ranking.items}
+        initialCursor={ranking.nextCursor}
+      />
     </section>
   );
 }

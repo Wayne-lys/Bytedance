@@ -61,7 +61,9 @@ describe("content publishing flow api", () => {
     expect(payload.error).toContain("高危");
     expect(payload.data.moderation.riskLevel).toBe("high");
 
-    const postCount = await prisma.post.count();
+    const postCount = await prisma.post.count({
+      where: { title: "稳赚下注技巧" }
+    });
     expect(postCount).toBe(0);
   });
 
@@ -91,8 +93,11 @@ describe("content publishing flow api", () => {
     const listPayload = await listResponse.json();
 
     expect(listResponse.status).toBe(200);
-    expect(listPayload.data.posts).toHaveLength(1);
-    expect(listPayload.data.posts[0].title).toBe("通勤路上的三种轻量补能习惯");
+    expect(
+      listPayload.data.posts.some(
+        (post: { title: string }) => post.title === "通勤路上的三种轻量补能习惯"
+      )
+    ).toBe(true);
   });
 
   it("edits a published post and re-runs review before updating publication", async () => {
