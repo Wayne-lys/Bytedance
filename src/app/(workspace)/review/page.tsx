@@ -17,20 +17,20 @@ export default async function ReviewPage() {
   });
 
   return (
-    <section className="grid gap-4 lg:grid-cols-[0.95fr_1.05fr]">
-      <div className="studio-panel p-6">
+    <section className="grid gap-4 xl:h-[calc(100vh-14rem)] xl:min-h-[640px] xl:grid-cols-[0.95fr_1.05fr] xl:items-stretch xl:overflow-hidden">
+      <div className="studio-panel flex min-h-0 flex-col overflow-hidden p-6">
         <p className="text-xs font-semibold text-accent">Review Desk</p>
         <h2 className="mt-2 text-3xl font-semibold text-ink">审核与质量</h2>
         <p className="mt-2 text-sm leading-6 text-muted">
           这里会展示风险等级、命中规则、质量分和合规改写前后对比。
         </p>
-        <div className="mt-5 grid gap-4">
+        <div className="mt-5 grid min-h-0 gap-4 overflow-y-auto pr-1">
           <ModerationPanel result={demoReview.moderation} />
           <QualityScoreCard score={demoReview.quality} />
         </div>
       </div>
 
-      <div className="space-y-3">
+      <div className="min-h-0 space-y-3 xl:overflow-y-auto xl:overscroll-contain xl:pr-1">
         {results.map((result) => (
           <article key={result.id} className="studio-tile p-5">
             <div className="flex items-center justify-between gap-3">
