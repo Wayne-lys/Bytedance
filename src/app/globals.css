@@ -26,8 +26,10 @@
 }
 
 body {
+  position: relative;
   min-height: 100vh;
   margin: 0;
+  overflow-x: hidden;
   background:
     radial-gradient(circle at 16% 4%, rgb(217 75 43 / 0.16), transparent 24rem),
     radial-gradient(circle at 86% 0%, rgb(15 118 110 / 0.15), transparent 28rem),
@@ -46,6 +48,26 @@ body {
     "liga" 1,
     "clig" 1,
     "onum" 1;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: -14vmax;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 18% 22%, rgb(217 75 43 / 0.46), transparent 22vmax),
+    radial-gradient(circle at 78% 18%, rgb(15 118 110 / 0.42), transparent 24vmax);
+  opacity: 0.66;
+  transform: translate3d(-2rem, -1rem, 0) rotate(0.001deg);
+  will-change: transform, opacity;
+  animation: auroraDrift 12s ease-in-out 2800ms infinite alternate;
+}
+
+body > * {
+  position: relative;
+  z-index: 1;
 }
 
 h1,
@@ -179,6 +201,21 @@ select {
   }
   to {
     background-position: 100% 50%;
+  }
+}
+
+@keyframes auroraDrift {
+  0% {
+    opacity: 0.6;
+    transform: translate3d(-3rem, -1.5rem, 0) scale(1);
+  }
+  45% {
+    opacity: 0.78;
+    transform: translate3d(2rem, 1rem, 0) scale(1.035);
+  }
+  100% {
+    opacity: 0.68;
+    transform: translate3d(4rem, -0.5rem, 0) scale(1.06);
   }
 }
 
