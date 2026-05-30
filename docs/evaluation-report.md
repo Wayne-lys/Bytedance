@@ -72,8 +72,8 @@ LCP <= 2500ms
 
 Latest local verification on 2026-05-30:
 
-- `/rankings`: 788ms
-- `/content/[id]`: 1936ms
+- `/rankings`: 736ms
+- `/content/[id]`: 1668ms
 
 Exact millisecond values are also printed by the Playwright test because local hardware and background load can vary.
 
