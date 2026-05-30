@@ -135,6 +135,56 @@ describe("content publishing flow api", () => {
     expect(updatePayload.data.post.qualityScore.total).toBeGreaterThan(0);
   });
 
+  it("supports content offline, withdrawal, and rollback actions", async () => {
+    const { POST } = await import("@/app/api/posts/route");
+    const statusRoute = await import("@/app/api/posts/[id]/status/route");
+
+    const publishResponse = await POST(
+      publishRequest({
+        title: "可控分发内容",
+        body: "这是一篇用于测试内容治理操作的安全图文，包含明确场景和可执行建议。",
+        tags: ["治理", "分发"],
+        platform: "头条"
+      })
+    );
+    const publishPayload = await publishResponse.json();
+    const postId = publishPayload.data.post.id;
+
+    const offlineResponse = await statusRoute.POST(
+      new Request(`http://localhost/api/posts/${postId}/status`, {
+        method: "POST",
+        body: JSON.stringify({ action: "offline" })
+      }),
+      { params: { id: postId } }
+    );
+    const offlinePayload = await offlineResponse.json();
+
+    expect(offlineResponse.status).toBe(200);
+    expect(offlinePayload.data.post.status).toBe("offline");
+
+    const rollbackResponse = await statusRoute.POST(
+      new Request(`http://localhost/api/posts/${postId}/status`, {
+        method: "POST",
+        body: JSON.stringify({ action: "rollback" })
+      }),
+      { params: { id: postId } }
+    );
+    const rollbackPayload = await rollbackResponse.json();
+
+    expect(rollbackPayload.data.post.status).toBe("published");
+
+    const withdrawResponse = await statusRoute.POST(
+      new Request(`http://localhost/api/posts/${postId}/status`, {
+        method: "POST",
+        body: JSON.stringify({ action: "withdraw" })
+      }),
+      { params: { id: postId } }
+    );
+    const withdrawPayload = await withdrawResponse.json();
+
+    expect(withdrawPayload.data.post.status).toBe("withdrawn");
+  });
+
   it("returns public content detail with author, publish time, cover, body, tags, and quality", async () => {
     const { POST } = await import("@/app/api/posts/route");
     const { GET } = await import("@/app/api/posts/[id]/route");

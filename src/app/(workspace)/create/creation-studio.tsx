@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { OfflineSyncIndicator } from "@/components/offline-sync-indicator";
-import { PromptPicker } from "@/components/prompt-picker";
+import { PromptLibraryPanel } from "@/components/prompt-library-panel";
 import { QualityScoreCard } from "@/components/quality-score-card";
 import { StatusBadge } from "@/components/status-badge";
 import { buildGeneratedTags, removeTopicTag } from "@/features/ai/generated-tags";
@@ -74,17 +74,22 @@ export function CreationStudio({ prompts }: { prompts: PromptTemplate[] }) {
   const [review, setReview] = useState<ReviewResult | null>(null);
   const [publishState, setPublishState] = useState("");
   const [detailHref, setDetailHref] = useState("");
+  const [promptList, setPromptList] = useState(prompts);
   const [selectedPromptId, setSelectedPromptId] = useState(prompts[0]?.id ?? "");
   const selectedPrompt = useMemo(
-    () => prompts.find((prompt) => prompt.id === selectedPromptId) ?? prompts[0],
-    [prompts, selectedPromptId]
+    () => promptList.find((prompt) => prompt.id === selectedPromptId) ?? promptList[0],
+    [promptList, selectedPromptId]
   );
 
   useEffect(() => {
-    if (!selectedPromptId && prompts[0]) {
-      setSelectedPromptId(prompts[0].id);
+    setPromptList(prompts);
+  }, [prompts]);
+
+  useEffect(() => {
+    if (!selectedPromptId && promptList[0]) {
+      setSelectedPromptId(promptList[0].id);
     }
-  }, [prompts, selectedPromptId]);
+  }, [promptList, selectedPromptId]);
 
   useEffect(() => {
     const cached = window.localStorage.getItem("creator-draft");
@@ -353,13 +358,16 @@ export function CreationStudio({ prompts }: { prompts: PromptTemplate[] }) {
               <h3 className="mt-1 text-xl font-semibold text-ink">Prompt 模板</h3>
               <p className="mt-2 text-xs leading-5 text-muted">点击模板切换 AI 生成指令。</p>
             </div>
-            <StatusBadge tone="safe">{prompts.length} 个</StatusBadge>
+            <StatusBadge tone="safe">{promptList.length} 个</StatusBadge>
           </div>
           <div className="mt-5">
-            <PromptPicker
-              prompts={prompts}
+            <PromptLibraryPanel
+              prompts={promptList}
               selectedPromptId={selectedPrompt?.id}
               onSelect={setSelectedPromptId}
+              onCreated={(prompt) =>
+                setPromptList((current) => [prompt, ...current])
+              }
             />
           </div>
         </section>

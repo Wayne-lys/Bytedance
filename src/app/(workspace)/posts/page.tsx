@@ -1,3 +1,4 @@
+import { PostGovernanceActions } from "@/components/post-governance-actions";
 import { StatusBadge } from "@/components/status-badge";
 import { listPosts } from "@/features/posts/post-service";
 import { prisma } from "@/lib/db";
@@ -5,7 +6,9 @@ import { prisma } from "@/lib/db";
 const statusTabs = [
   { id: "drafts", label: "草稿" },
   { id: "published", label: "已发布" },
-  { id: "rejected", label: "被驳回" }
+  { id: "rejected", label: "被驳回" },
+  { id: "offline", label: "已下线" },
+  { id: "withdrawn", label: "已撤回" }
 ];
 
 function formatDate(date: Date | string | null | undefined) {
@@ -30,7 +33,22 @@ function postStatusTone(status: string) {
     return "blocked" as const;
   }
 
+  if (status === "offline" || status === "withdrawn") {
+    return "warning" as const;
+  }
+
   return "neutral" as const;
+}
+
+function postStatusLabel(status: string) {
+  const labels: Record<string, string> = {
+    published: "已发布",
+    rejected: "被驳回",
+    offline: "已下线",
+    withdrawn: "已撤回"
+  };
+
+  return labels[status] ?? status;
 }
 
 export default async function PostsPage({
@@ -39,20 +57,31 @@ export default async function PostsPage({
   searchParams?: { status?: string };
 }) {
   const activeStatus = searchParams?.status ?? "published";
-  const [drafts, publishedPosts, rejectedPosts] = await Promise.all([
+  const [drafts, publishedPosts, rejectedPosts, offlinePosts, withdrawnPosts] = await Promise.all([
     prisma.draft.findMany({
       orderBy: { updatedAt: "desc" }
     }),
     listPosts("published"),
-    listPosts("rejected")
+    listPosts("rejected"),
+    listPosts("offline"),
+    listPosts("withdrawn")
   ]);
 
   const counts = {
     drafts: drafts.length,
     published: publishedPosts.length,
-    rejected: rejectedPosts.length
+    rejected: rejectedPosts.length,
+    offline: offlinePosts.length,
+    withdrawn: withdrawnPosts.length
   };
-  const visiblePosts = activeStatus === "rejected" ? rejectedPosts : publishedPosts;
+  const visiblePosts =
+    activeStatus === "rejected"
+      ? rejectedPosts
+      : activeStatus === "offline"
+        ? offlinePosts
+        : activeStatus === "withdrawn"
+          ? withdrawnPosts
+          : publishedPosts;
 
   return (
     <section className="space-y-5">
@@ -148,7 +177,9 @@ export default async function PostsPage({
                 <a href={`/content/${post.id}`} className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
                     <h3 className="text-lg font-semibold text-ink">{post.title}</h3>
-                    <StatusBadge tone={postStatusTone(post.status)}>{post.status}</StatusBadge>
+                    <StatusBadge tone={postStatusTone(post.status)}>
+                      {postStatusLabel(post.status)}
+                    </StatusBadge>
                   </div>
                   <p className="mt-2 line-clamp-2 text-sm leading-6 text-muted">{post.body}</p>
                   <p className="mt-3 text-xs text-muted">
@@ -180,6 +211,7 @@ export default async function PostsPage({
                   >
                     查看详情
                   </a>
+                  <PostGovernanceActions postId={post.id} status={post.status} />
                 </div>
               </article>
             ))

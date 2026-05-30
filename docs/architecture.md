@@ -15,13 +15,13 @@ The project uses a single Next.js App Router codebase for UI, route handlers, do
 
 ## API Boundaries
 
-- Auth: `/api/auth/register`, `/api/auth/login`, `/api/auth/phone-code`, `/api/auth/logout`
+- Auth: `/api/auth/register`, `/api/auth/login`, `/api/auth/phone-code`, `/api/auth/me`, `/api/auth/logout`
 - Assets: `/api/materials`
 - Prompt templates: `/api/prompts`
 - Drafts: `/api/drafts`
 - AI generation: `/api/ai/generate`
 - Moderation: `/api/moderation/review`, `/api/moderation/rewrite`, `/api/moderation/evaluate`
-- Publishing: `/api/posts`, `/api/posts/[id]`
+- Publishing: `/api/posts`, `/api/posts/[id]`, `/api/posts/[id]/status`
 - Ranking: `/api/ranking`
 
 ## Data Model
@@ -40,7 +40,7 @@ Core Prisma models:
 - `AuditRule`
 - `EvaluationCase`
 
-The central content entity is `Post`. A published post owns one moderation result, one quality score, and one ranking metric.
+The central content entity is `Post`. A published post owns one moderation result, one quality score, and one ranking metric. Distribution governance uses the post `status` field to support published, rejected, offline, and withdrawn states, with rollback returning governed content to the published state.
 
 ## AI Provider Strategy
 

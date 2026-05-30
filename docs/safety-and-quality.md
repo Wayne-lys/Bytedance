@@ -31,6 +31,7 @@ Publishing rejects medium/high content. Safe and low-risk content can proceed.
 5. If medium-risk: require rewrite/review.
 6. If safe/low-risk: allow publish.
 7. Persist moderation result and quality score with the post.
+8. If content later needs governance intervention, use content management actions to take it offline, withdraw it, or roll it back to the latest published state.
 
 ## Quality Dimensions
 
@@ -48,3 +49,13 @@ The total score is used by the review UI and ranking formula.
 ## Rewrite Loop
 
 `/api/moderation/rewrite` replaces risky phrases with compliant alternatives. The evaluation dashboard shows before/after examples so reviewers can inspect whether the rewrite keeps the content useful while reducing risk.
+
+## Distribution Governance
+
+`/api/posts/[id]/status` supports:
+
+- `offline`: take published content out of recommendation and ranking surfaces.
+- `withdraw`: mark content as withdrawn by the creator/operator.
+- `rollback`: restore governed content to the published state after review.
+
+The ranking API only reads `published` content, so offline and withdrawn content immediately leaves the hot, viral, and recommended feeds.

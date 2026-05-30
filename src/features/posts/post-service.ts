@@ -272,6 +272,33 @@ export async function updatePost(id: string, input: PostInput) {
   return serializePost(refreshed);
 }
 
+export async function changePostDistributionStatus(
+  id: string,
+  action: "offline" | "withdraw" | "rollback"
+) {
+  const existing = await prisma.post.findUnique({
+    where: { id }
+  });
+
+  if (!existing) {
+    return null;
+  }
+
+  const nextStatus =
+    action === "offline" ? "offline" : action === "withdraw" ? "withdrawn" : "published";
+  const post = await prisma.post.update({
+    where: { id },
+    data: {
+      status: nextStatus,
+      publishedAt:
+        nextStatus === "published" ? (existing.publishedAt ?? new Date()) : existing.publishedAt
+    },
+    include: postInclude
+  });
+
+  return serializePost(post);
+}
+
 export function publishBlockPayload(error: PublishBlockedError) {
   return {
     moderation: error.review.moderation,
