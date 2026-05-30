@@ -71,7 +71,7 @@ export function MaterialDeleteButton({
             role="dialog"
             aria-modal="true"
             aria-labelledby={`delete-material-title-${id}`}
-            className="w-full max-w-md overflow-hidden rounded-lg border border-line bg-panel shadow-[0_24px_80px_rgba(36,31,26,0.34)]"
+            className="studio-dialog w-full max-w-md overflow-hidden rounded-lg border border-line shadow-[0_24px_80px_rgba(36,31,26,0.34)]"
           >
             <div className="border-b border-line bg-sidebar px-5 py-4 text-white">
               <p className="text-xs font-semibold text-[#d7c9b6]">Material Control</p>

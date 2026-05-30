@@ -9,20 +9,37 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        ink: "#241f1a",
-        muted: "#746a5f",
-        paper: "#efebe1",
-        panel: "#fffdf7",
-        "panel-muted": "#f6f1e8",
-        line: "#d7ccbd",
+        ink: "#201b16",
+        muted: "#70675d",
+        paper: "#eceee5",
+        panel: "#fffdf6",
+        "panel-muted": "#f4efe4",
+        line: "#d8cbbb",
         accent: "#d94b2b",
-        teal: "#11746f",
+        teal: "#0f766e",
+        lapis: "#315477",
         warn: "#b86b24",
-        sidebar: "#211c18"
+        sidebar: "#1d1916"
+      },
+      fontFamily: {
+        serif: [
+          "Latin Modern Roman",
+          "CMU Serif",
+          "Computer Modern Serif",
+          "STIX Two Text",
+          "Noto Serif SC",
+          "Source Han Serif SC",
+          "Songti SC",
+          "SimSun",
+          "Cambria",
+          "Times New Roman",
+          "Georgia",
+          "serif"
+        ]
       },
       boxShadow: {
-        soft: "0 24px 70px rgba(36, 31, 26, 0.10)",
-        crisp: "0 12px 28px rgba(36, 31, 26, 0.08)"
+        soft: "0 28px 90px rgba(32, 27, 22, 0.13)",
+        crisp: "0 14px 32px rgba(32, 27, 22, 0.10)"
       }
     }
   },
