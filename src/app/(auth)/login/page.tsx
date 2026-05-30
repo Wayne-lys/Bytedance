@@ -3,23 +3,43 @@
 import { useState } from "react";
 
 export default function LoginPage() {
+  const [mode, setMode] = useState<"login" | "register">("login");
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("creator@example.com");
   const [password, setPassword] = useState("Demo123456");
   const [error, setError] = useState("");
 
-  async function login(event: React.FormEvent<HTMLFormElement>) {
+  function switchMode(nextMode: "login" | "register") {
+    setMode(nextMode);
+    setError("");
+
+    if (nextMode === "register") {
+      setName("");
+      setEmail("");
+      setPassword("");
+    } else {
+      setEmail("creator@example.com");
+      setPassword("Demo123456");
+    }
+  }
+
+  async function submitAuth(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError("");
 
-    const response = await fetch("/api/auth/login", {
+    const response = await fetch(mode === "register" ? "/api/auth/register" : "/api/auth/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ type: "email", email, password })
+      body: JSON.stringify(
+        mode === "register"
+          ? { name, email, password }
+          : { type: "email", email, password }
+      )
     });
     const payload = await response.json();
 
     if (!payload.ok) {
-      setError(payload.error ?? "登录失败");
+      setError(payload.error ?? (mode === "register" ? "注册失败" : "登录失败"));
       return;
     }
 
@@ -54,13 +74,28 @@ export default function LoginPage() {
 
         <div className="flex flex-col justify-center p-6 sm:p-10">
           <div className="mb-7">
-            <p className="text-xs font-semibold text-accent">Studio Login</p>
+            <p className="text-xs font-semibold text-accent">Studio Access</p>
             <h2 className="mt-2 text-3xl font-semibold leading-tight text-ink">
-              登录
+              {mode === "register" ? "注册创作者账号" : "登录"}
             </h2>
+            <p className="mt-3 text-sm leading-6 text-muted">
+              {mode === "register"
+                ? "使用邮箱创建账号，注册成功后会自动进入工作台。"
+                : "使用演示账号登录，或注册一个新的创作者账号。"}
+            </p>
           </div>
 
-          <form onSubmit={login} className="studio-panel space-y-4 p-5 sm:p-6">
+          <form onSubmit={submitAuth} className="studio-panel space-y-4 p-5 sm:p-6">
+            {mode === "register" ? (
+              <label className="block">
+                <span className="text-sm font-semibold text-ink">昵称</span>
+                <input
+                  value={name}
+                  onChange={(event) => setName(event.target.value)}
+                  className="studio-input mt-2 h-11 w-full px-3 text-sm"
+                />
+              </label>
+            ) : null}
             <label className="block">
               <span className="text-sm font-semibold text-ink">邮箱</span>
               <input
@@ -84,8 +119,25 @@ export default function LoginPage() {
               type="submit"
               className="studio-button h-11 w-full bg-accent px-4 text-sm font-semibold text-white shadow-crisp hover:bg-sidebar"
             >
-              登录
+              {mode === "register" ? "创建账号" : "登录"}
             </button>
+            {mode === "register" ? (
+              <button
+                type="button"
+                onClick={() => switchMode("login")}
+                className="studio-button h-10 w-full border border-line bg-panel px-4 text-sm font-semibold text-ink hover:border-accent"
+              >
+                返回登录
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() => switchMode("register")}
+                className="studio-button h-10 w-full border border-line bg-panel px-4 text-sm font-semibold text-ink hover:border-accent"
+              >
+                注册账号
+              </button>
+            )}
           </form>
 
           <div className="mt-6 rounded-lg border border-line bg-panel-muted p-5">
