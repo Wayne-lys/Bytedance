@@ -35,6 +35,7 @@ describe("ai provider", () => {
     expect(result.title).toContain("通勤路上的轻量补能");
     expect(result.body.length).toBeGreaterThan(40);
     expect(result.tags).toContain("头条");
+    expect(result.tags).not.toContain("通勤路上的轻量补能");
     expect(result.provider).toBe("mock");
   });
 });

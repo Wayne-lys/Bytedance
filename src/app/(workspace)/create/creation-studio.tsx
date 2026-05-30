@@ -5,6 +5,7 @@ import { OfflineSyncIndicator } from "@/components/offline-sync-indicator";
 import { PromptPicker } from "@/components/prompt-picker";
 import { QualityScoreCard } from "@/components/quality-score-card";
 import { StatusBadge } from "@/components/status-badge";
+import { buildGeneratedTags, removeTopicTag } from "@/features/ai/generated-tags";
 
 type PromptTemplate = {
   id: string;
@@ -79,7 +80,12 @@ export function CreationStudio({ prompts }: { prompts: PromptTemplate[] }) {
     const cached = window.localStorage.getItem("creator-draft");
 
     if (cached) {
-      setDraft(JSON.parse(cached) as DraftState);
+      const cachedDraft = JSON.parse(cached) as DraftState;
+
+      setDraft({
+        ...cachedDraft,
+        tags: removeTopicTag(cachedDraft.tags, cachedDraft.topic)
+      });
     }
   }, []);
 
@@ -117,7 +123,7 @@ export function CreationStudio({ prompts }: { prompts: PromptTemplate[] }) {
     const fallbackDraft = {
       title: `${topic}: 给${audience}的 3 个具体建议`,
       body: `围绕${topic}，先说明一个真实生活场景，再给出三条可以立即执行的建议。内容保持具体、可信，适合在${draft.platform}发布，并在结尾留下一个方便评论互动的问题。`,
-      tags: `${draft.platform},AI创作,短图文,${topic}`
+      tags: buildGeneratedTags(draft.platform, topic).join(",")
     };
 
     setDraft((current) => ({
@@ -149,7 +155,7 @@ export function CreationStudio({ prompts }: { prompts: PromptTemplate[] }) {
         ...current,
         title: payload.data.generated.title,
         body: payload.data.generated.body,
-        tags: payload.data.generated.tags.join(",")
+        tags: removeTopicTag(payload.data.generated.tags.join(","), topic)
       }));
       setReview(null);
     } catch {
