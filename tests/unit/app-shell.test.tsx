@@ -1,5 +1,5 @@
 import { render, screen } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { AppShell } from "@/components/app-shell";
 import { StatusBadge } from "@/components/status-badge";
 
@@ -8,6 +8,15 @@ vi.mock("next/navigation", () => ({
 }));
 
 describe("workspace shell", () => {
+  beforeEach(() => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(
+        new Response(JSON.stringify({ ok: false }), { status: 401 })
+      )
+    );
+  });
+
   it("renders the Chinese workspace navigation", () => {
     render(
       <AppShell>
@@ -24,6 +33,37 @@ describe("workspace shell", () => {
       "/materials"
     );
     expect(screen.getByText("页面内容")).toBeInTheDocument();
+  });
+
+  it("shows the logged-in user instead of the login entry", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(
+        new Response(
+          JSON.stringify({
+            ok: true,
+            data: {
+              user: {
+                id: "user_1",
+                email: "test@example.com",
+                name: "测试用户"
+              }
+            }
+          }),
+          { status: 200 }
+        )
+      )
+    );
+
+    render(
+      <AppShell>
+        <p>页面内容</p>
+      </AppShell>
+    );
+
+    expect(await screen.findByText("测试用户")).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "登录入口" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "退出登录" })).toBeInTheDocument();
   });
 
   it("renders status badges with their label", () => {

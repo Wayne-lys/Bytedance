@@ -61,10 +61,10 @@ The test publishes a lightweight demo post, measures Largest Contentful Paint fo
 LCP <= 2500ms
 ```
 
-Latest local verification on 2026-05-29:
+Latest local verification on 2026-05-30:
 
-- `/rankings`: 712ms
-- `/content/[id]`: 2056ms
+- `/rankings`: 792ms
+- `/content/[id]`: 1704ms
 
 Exact millisecond values are also printed by the Playwright test because local hardware and background load can vary.
 

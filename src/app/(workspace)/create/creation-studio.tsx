@@ -74,7 +74,17 @@ export function CreationStudio({ prompts }: { prompts: PromptTemplate[] }) {
   const [review, setReview] = useState<ReviewResult | null>(null);
   const [publishState, setPublishState] = useState("");
   const [detailHref, setDetailHref] = useState("");
-  const selectedPrompt = useMemo(() => prompts[0], [prompts]);
+  const [selectedPromptId, setSelectedPromptId] = useState(prompts[0]?.id ?? "");
+  const selectedPrompt = useMemo(
+    () => prompts.find((prompt) => prompt.id === selectedPromptId) ?? prompts[0],
+    [prompts, selectedPromptId]
+  );
+
+  useEffect(() => {
+    if (!selectedPromptId && prompts[0]) {
+      setSelectedPromptId(prompts[0].id);
+    }
+  }, [prompts, selectedPromptId]);
 
   useEffect(() => {
     const cached = window.localStorage.getItem("creator-draft");
@@ -341,11 +351,16 @@ export function CreationStudio({ prompts }: { prompts: PromptTemplate[] }) {
             <div>
               <p className="text-xs font-semibold text-accent">Prompt Library</p>
               <h3 className="mt-1 text-xl font-semibold text-ink">Prompt 模板</h3>
+              <p className="mt-2 text-xs leading-5 text-muted">点击模板切换 AI 生成指令。</p>
             </div>
             <StatusBadge tone="safe">{prompts.length} 个</StatusBadge>
           </div>
           <div className="mt-5">
-            <PromptPicker prompts={prompts} />
+            <PromptPicker
+              prompts={prompts}
+              selectedPromptId={selectedPrompt?.id}
+              onSelect={setSelectedPromptId}
+            />
           </div>
         </section>
 

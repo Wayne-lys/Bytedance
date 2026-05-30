@@ -142,4 +142,25 @@ describe("auth api", () => {
     expect(response.status).toBe(200);
     expect(payload.data.cookie).toBe(sessionCookieName());
   });
+
+  it("returns the current session user without exposing password hash", async () => {
+    const { createSession, hashPassword } = await import("@/lib/auth");
+    const { GET } = await import("@/app/api/auth/me/route");
+    const user = await prisma.user.create({
+      data: {
+        email: "test@example.com",
+        passwordHash: await hashPassword("Strong123"),
+        name: "测试用户"
+      }
+    });
+
+    await createSession(user.id);
+
+    const response = await GET();
+    const payload = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(payload.data.user.email).toBe("test@example.com");
+    expect(payload.data.user.passwordHash).toBeUndefined();
+  });
 });

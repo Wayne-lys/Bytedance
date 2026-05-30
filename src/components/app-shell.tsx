@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 
 const navItems = [
@@ -11,6 +12,13 @@ const navItems = [
   { label: "规则体系", href: "/rules", index: "06" },
   { label: "效果评估", href: "/evaluation", index: "07" }
 ];
+
+type SessionUser = {
+  id: string;
+  email: string | null;
+  phone: string | null;
+  name: string | null;
+};
 
 export function AppShell({
   children,
@@ -24,6 +32,45 @@ export function AppShell({
   description?: string;
 }) {
   const pathname = usePathname();
+  const [currentUser, setCurrentUser] = useState<SessionUser | null>(null);
+  const [authChecked, setAuthChecked] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+
+    async function loadCurrentUser() {
+      try {
+        const response = await fetch("/api/auth/me");
+        const payload = await response.json();
+
+        if (!active) {
+          return;
+        }
+
+        setCurrentUser(payload.ok ? payload.data.user : null);
+      } catch {
+        if (active) {
+          setCurrentUser(null);
+        }
+      } finally {
+        if (active) {
+          setAuthChecked(true);
+        }
+      }
+    }
+
+    void loadCurrentUser();
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  async function logout() {
+    await fetch("/api/auth/logout", { method: "POST" });
+    setCurrentUser(null);
+    setAuthChecked(true);
+  }
 
   return (
     <main className="min-h-screen p-3 sm:p-4">
@@ -93,19 +140,34 @@ export function AppShell({
                 </p>
               </div>
 
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <a
                   href="/rankings"
                   className="studio-button inline-flex h-10 items-center justify-center border border-line bg-panel px-4 text-sm font-medium text-ink hover:border-accent"
                 >
                   查看榜单
                 </a>
-                <a
-                  href="/login"
-                  className="studio-button inline-flex h-10 items-center justify-center bg-sidebar px-4 text-sm font-medium text-white shadow-crisp hover:bg-accent"
-                >
-                  登录入口
-                </a>
+                {currentUser ? (
+                  <>
+                    <span className="studio-button inline-flex h-10 items-center justify-center border border-line bg-panel px-4 text-sm font-medium text-ink">
+                      {currentUser.name ?? currentUser.email ?? currentUser.phone ?? "已登录"}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => void logout()}
+                      className="studio-button inline-flex h-10 items-center justify-center bg-sidebar px-4 text-sm font-medium text-white shadow-crisp hover:bg-accent"
+                    >
+                      退出登录
+                    </button>
+                  </>
+                ) : authChecked ? (
+                  <a
+                    href="/login"
+                    className="studio-button inline-flex h-10 items-center justify-center bg-sidebar px-4 text-sm font-medium text-white shadow-crisp hover:bg-accent"
+                  >
+                    登录入口
+                  </a>
+                ) : null}
               </div>
             </div>
           </header>
