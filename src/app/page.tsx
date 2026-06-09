@@ -180,7 +180,7 @@ export default async function Home() {
               <p className="mt-10 text-xs font-semibold uppercase text-[#d9c7b4]">
                 系统概览
               </p>
-              <h2 className="mt-4 max-w-3xl text-4xl font-semibold leading-[1.02] text-[#fffaf0] sm:text-5xl 2xl:text-6xl">
+              <h2 className="mt-4 max-w-none text-[2.5rem] font-semibold leading-[1.04] text-[#fffaf0] sm:text-[2.9rem] xl:text-[3.3rem] 2xl:text-[3.55rem] lg:whitespace-nowrap">
                 {canReviewContent ? "AI 内容生产与审核工作台" : "AI 内容生产工作台"}
               </h2>
               <p className="mt-6 max-w-2xl text-base leading-8 text-[#d9c7b4]">
@@ -228,7 +228,7 @@ export default async function Home() {
                   </span>
                 </div>
 
-                <div className="mt-4 grid gap-4 xl:grid-cols-[minmax(0,0.96fr)_minmax(0,1.04fr)]">
+                <div className="mt-4 grid items-start gap-4 xl:grid-cols-[minmax(0,0.96fr)_minmax(0,1.04fr)]">
                   <div className="overflow-hidden rounded-lg border border-line bg-panel shadow-crisp">
                     <div className="border-b border-line px-4 py-3">
                       <p className="text-xs font-semibold text-accent">封面资产</p>
