@@ -62,6 +62,12 @@ type ReviewResult = {
   };
 };
 
+type GenerationGuidance = {
+  coverSuggestion: string;
+  publishAdvice: string;
+  provider?: string;
+};
+
 type ActiveAction = "generate" | "save" | "review" | "publish" | "rewrite" | "clear";
 
 const DRAFT_STORAGE_KEY = "creator-draft";
@@ -215,6 +221,8 @@ export function CreationStudio({
   const [publishState, setPublishState] = useState("");
   const [detailHref, setDetailHref] = useState("");
   const [activeAction, setActiveAction] = useState<ActiveAction | null>(null);
+  const [generationGuidance, setGenerationGuidance] =
+    useState<GenerationGuidance | null>(null);
   const storageReadyRef = useRef(false);
   const [promptList, setPromptList] = useState(prompts);
   const [selectedPromptId, setSelectedPromptId] = useState(prompts[0]?.id ?? "");
@@ -229,6 +237,39 @@ export function CreationStudio({
   const selectedMaterials = useMemo(
     () => materials.filter((material) => draft.materialIds.includes(material.id)),
     [draft.materialIds, materials]
+  );
+  const creativeBrief = useMemo(
+    () => [
+      {
+        label: "核心方向",
+        value: [
+          draft.topic.trim() || "等待输入选题",
+          draft.audience.trim() || "默认受众"
+        ].join(" / ")
+      },
+      {
+        label: "生成策略",
+        value: [
+          selectedPrompt?.name ?? "默认模板",
+          draft.platform.trim() || "头条",
+          draft.style.trim() || "默认风格"
+        ].join(" / ")
+      },
+      {
+        label: "素材上下文",
+        value:
+          selectedMaterials.map((material) => material.name).join("、") ||
+          "未选择素材"
+      }
+    ],
+    [
+      draft.audience,
+      draft.platform,
+      draft.style,
+      draft.topic,
+      selectedMaterials,
+      selectedPrompt?.name
+    ]
   );
 
   useEffect(() => {
@@ -298,6 +339,7 @@ export function CreationStudio({
     window.localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(nextDraft));
     setReview(null);
     setReviewedDraftKey("");
+    setGenerationGuidance(null);
   }
 
   function toggleMaterial(material: MaterialOption, checked: boolean) {
@@ -330,6 +372,7 @@ export function CreationStudio({
     });
     setReview(null);
     setReviewedDraftKey("");
+    setGenerationGuidance(null);
   }
 
   async function saveCurrentDraft(nextState = "synced") {
@@ -420,6 +463,7 @@ export function CreationStudio({
 
       setReview(null);
       setReviewedDraftKey("");
+      setGenerationGuidance(null);
 
       try {
         const response = await fetch("/api/ai/generate", {
@@ -439,14 +483,25 @@ export function CreationStudio({
         if (!payload.ok || !payload.data?.generated?.title) {
           throw new Error(payload.error ?? "AI 生成失败");
         }
+        const generated = payload.data.generated;
 
         setDraft((current) => ({
           ...current,
-          title: payload.data.generated.title,
-          body: payload.data.generated.body,
-          tags: removeTopicTag(payload.data.generated.tags.join(","), topic),
+          title: generated.title,
+          body: generated.body,
+          tags: removeTopicTag(generated.tags.join(","), topic),
           coverUrl: current.coverUrl ?? selectedCoverUrl
         }));
+        setGenerationGuidance({
+          coverSuggestion:
+            generated.coverSuggestion ||
+            selectedMaterialNames[0] ||
+            "优先选择主体清晰、与选题直接相关的封面。",
+          publishAdvice:
+            generated.publishAdvice ||
+            "发布前确认标题、正文、标签和素材上下文一致，再进入审核。",
+          provider: generated.provider
+        });
         setReview(null);
         setReviewedDraftKey("");
         setPublishState("AI 生成完成，请审核后发布。");
@@ -456,6 +511,11 @@ export function CreationStudio({
           ...fallbackDraft,
           coverUrl: current.coverUrl ?? selectedCoverUrl
         }));
+        setGenerationGuidance({
+          coverSuggestion: fallbackGenerated.coverSuggestion,
+          publishAdvice: fallbackGenerated.publishAdvice,
+          provider: "local-fallback"
+        });
         setPublishState("AI 生成失败，已使用本地兜底草稿。");
       }
     });
@@ -633,6 +693,18 @@ export function CreationStudio({
         </div>
 
         <div className="grid min-h-0 flex-1 gap-6 overflow-y-auto p-5 md:p-6">
+          <section
+            data-testid="creative-brief"
+            className="grid gap-3 rounded-md border border-line bg-panel-muted/70 p-4 md:grid-cols-3"
+          >
+            {creativeBrief.map((item) => (
+              <div key={item.label}>
+                <p className="text-xs font-semibold text-accent">{item.label}</p>
+                <p className="mt-1 text-sm leading-6 text-ink">{item.value}</p>
+              </div>
+            ))}
+          </section>
+
           <div className="grid gap-4 md:grid-cols-2">
             {fieldRows.map(([key, label, placeholder]) => (
               <label key={key} className="block">
@@ -690,6 +762,23 @@ export function CreationStudio({
               />
             </label>
           </div>
+
+          {generationGuidance ? (
+            <section className="grid gap-3 rounded-md border border-line bg-panel-muted/70 p-4 md:grid-cols-2">
+              <div>
+                <p className="text-xs font-semibold text-accent">封面建议</p>
+                <p className="mt-1 text-sm leading-6 text-ink">
+                  {generationGuidance.coverSuggestion}
+                </p>
+              </div>
+              <div>
+                <p className="text-xs font-semibold text-accent">发布建议</p>
+                <p className="mt-1 text-sm leading-6 text-ink">
+                  {generationGuidance.publishAdvice}
+                </p>
+              </div>
+            </section>
+          ) : null}
 
         </div>
 

@@ -312,6 +312,74 @@ describe("creation studio", () => {
     );
   });
 
+  it("shows a creative brief assembled from the rough idea, prompt, and selected materials", () => {
+    render(
+      <Studio
+        prompts={prompts}
+        materials={materials}
+        canReviewContent={true}
+        initialDraft={{
+          topic: "通勤补能",
+          audience: "城市白领",
+          platform: "头条",
+          style: "真实、具体、信息密度高"
+        }}
+      />
+    );
+
+    const brief = screen.getByTestId("creative-brief");
+
+    expect(brief).toHaveTextContent("通勤补能");
+    expect(brief).toHaveTextContent("城市白领");
+    expect(brief).toHaveTextContent("短图文模板");
+
+    fireEvent.click(screen.getByRole("checkbox", { name: "选择素材 城市咖啡店封面" }));
+
+    expect(brief).toHaveTextContent("城市咖啡店封面");
+  });
+
+  it("surfaces cover and publish advice returned by AI generation", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          ok: true,
+          data: {
+            generated: {
+              title: "结合素材的标题",
+              body: "结合素材的正文",
+              tags: ["素材", "通勤"],
+              coverSuggestion: "优先使用通勤补能清单作为封面。",
+              publishAdvice: "建议午休前发布，并保留合规表达。"
+            }
+          }
+        }),
+        { status: 200 }
+      )
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    render(
+      <Studio
+        prompts={prompts}
+        materials={materials}
+        canReviewContent={true}
+        initialDraft={{
+          topic: "通勤补能",
+          audience: "城市白领",
+          platform: "头条",
+          style: "真实、具体、信息密度高"
+        }}
+      />
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "AI 生成" }));
+
+    expect(await screen.findByText("封面建议")).toBeInTheDocument();
+    expect(screen.getByText("优先使用通勤补能清单作为封面。")).toBeInTheDocument();
+    expect(screen.getByText("发布建议")).toBeInTheDocument();
+    expect(screen.getByText("建议午休前发布，并保留合规表达。")).toBeInTheDocument();
+  });
+
   it("lays out material options in a two-column scrollable grid", () => {
     render(
       <Studio
