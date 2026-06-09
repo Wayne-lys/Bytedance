@@ -142,6 +142,8 @@ export function RankingList({
                 </p>
                 <div className="mt-4 space-y-1 text-xs text-muted">
                   <p>质量贡献 {item.explanation.qualityContribution}</p>
+                  <p>热度贡献 {item.explanation.heatContribution}</p>
+                  <p>反馈贡献 {item.explanation.feedbackContribution}</p>
                   <p>风险扣分 -{item.explanation.riskPenalty}</p>
                 </div>
               </>

@@ -21,6 +21,7 @@ export type RankingSourceItem = RankingScoreInput & {
   views?: number;
   likes?: number;
   saves?: number;
+  comments?: number;
 };
 
 export type RankedItem = RankingSourceItem & {
@@ -62,6 +63,24 @@ function deriveHeatScore(metric: {
   return clampScore(metric.views * 0.03 + metric.likes * 0.35 + metric.saves * 0.25);
 }
 
+function deriveFeedbackScore(
+  metric: {
+    views: number;
+    likes: number;
+    saves: number;
+    feedbackScore: number;
+  },
+  comments: number
+) {
+  if (metric.feedbackScore > 0) {
+    return metric.feedbackScore;
+  }
+
+  return clampScore(
+    metric.views * 0.01 + metric.likes * 4 + metric.saves * 5 + comments * 8
+  );
+}
+
 function deriveFreshnessScore(publishedAt: Date | null, storedScore: number) {
   if (storedScore > 0) {
     return storedScore;
@@ -99,10 +118,10 @@ function deriveRiskPenalty(riskLevel: string | undefined, storedPenalty: number)
 
 export function calculateRankingScore(input: RankingScoreInput) {
   const explanation = {
-    qualityContribution: roundScore(input.qualityScore * 0.75),
-    heatContribution: 0,
-    freshnessContribution: roundScore(input.freshnessScore * 0.25),
-    feedbackContribution: 0,
+    qualityContribution: roundScore(input.qualityScore * 0.45),
+    heatContribution: roundScore(input.heatScore * 0.3),
+    freshnessContribution: roundScore(input.freshnessScore * 0.15),
+    feedbackContribution: roundScore(input.feedbackScore * 0.1),
     riskPenalty: roundScore(input.riskPenalty)
   };
 
@@ -224,7 +243,10 @@ export async function getRankingItems({
       },
       qualityScore: true,
       moderationResult: true,
-      rankingMetric: true
+      rankingMetric: true,
+      _count: {
+        select: { comments: true }
+      }
     }
   });
 
@@ -247,6 +269,8 @@ export async function getRankingItems({
       post.moderationResult?.riskLevel,
       metric.riskPenalty
     );
+    const comments = post._count.comments;
+    const feedbackScore = deriveFeedbackScore(metric, comments);
 
     return {
       postId: post.id,
@@ -259,11 +283,12 @@ export async function getRankingItems({
       qualityScore: post.qualityScore?.total ?? 0,
       heatScore,
       freshnessScore,
-      feedbackScore: metric.feedbackScore,
+      feedbackScore,
       riskPenalty,
       views: metric.views,
       likes: metric.likes,
-      saves: metric.saves
+      saves: metric.saves,
+      comments
     };
   });
 

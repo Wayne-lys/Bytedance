@@ -47,14 +47,14 @@ The ranking score is calculated as:
 score = quality * 0.45 + heat * 0.30 + freshness * 0.15 + feedback * 0.10 - riskPenalty
 ```
 
-The UI exposes the contribution from each factor so reviewers can explain why an item appears in the hot, viral, or recommended views.
+The UI exposes the contribution from each factor so reviewers can explain why an item appears in the hot, latest, or recommended views. Hot ranking sorts by real detail-page reads first; recommended ranking uses the weighted score above.
 
 ## Advanced Challenge Coverage
 
 - Short image-text creative editor: structured inputs plus Prompt and material context generate complete title, body, tags, cover suggestion, and publish advice.
 - High-precision safety recognition: the rules and evaluation dashboard target 90%+ high-risk recognition and expose false-positive / false-negative metrics.
 - Content governance: content management supports offline, withdrawal, and rollback actions; non-published content is excluded from ranking feeds.
-- Intelligent ranking: rankings combine quality, heat, freshness, feedback, and risk penalty, with visible contribution explanations and cursor-based infinite loading.
+- Intelligent ranking: rankings combine quality, real read heat, freshness, reader feedback, and risk penalty, with visible contribution explanations and cursor-based infinite loading. Likes and comments update the feedback score used by recommended ranking.
 
 ## LCP Verification
 

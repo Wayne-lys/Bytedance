@@ -93,6 +93,19 @@ const postInclude = {
   moderationResult: true,
   qualityScore: true,
   rankingMetric: true,
+  comments: {
+    orderBy: { createdAt: "desc" },
+    take: 20,
+    include: {
+      author: {
+        select: {
+          id: true,
+          name: true,
+          avatarUrl: true
+        }
+      }
+    }
+  },
   materials: {
     orderBy: { position: "asc" },
     include: {
@@ -110,6 +123,38 @@ const postInclude = {
     }
   }
 } satisfies Prisma.PostInclude;
+
+function clampFeedbackScore(score: number) {
+  return Math.max(0, Math.min(100, Math.round(score)));
+}
+
+function calculateFeedbackScore(input: {
+  views?: number | null;
+  likes?: number | null;
+  saves?: number | null;
+  comments?: number | null;
+}) {
+  return clampFeedbackScore(
+    (input.views ?? 0) * 0.01 +
+      (input.likes ?? 0) * 4 +
+      (input.saves ?? 0) * 5 +
+      (input.comments ?? 0) * 8
+  );
+}
+
+function serializeMetric(metric: {
+  views: number;
+  likes: number;
+  saves: number;
+  feedbackScore: number;
+}) {
+  return {
+    views: metric.views,
+    likes: metric.likes,
+    saves: metric.saves,
+    feedbackScore: metric.feedbackScore
+  };
+}
 
 export async function getPublishingAuthor() {
   let currentUser: Awaited<ReturnType<typeof getCurrentUser>> = null;
@@ -210,6 +255,12 @@ export function serializePost<
     materials: post.materials.map((item) => ({
       ...item.material,
       position: item.position
+    })),
+    comments: post.comments.map((comment) => ({
+      id: comment.id,
+      body: comment.body,
+      authorName: comment.author?.name ?? comment.authorName,
+      createdAt: comment.createdAt
     })),
     qualitySummary: post.qualityScore
       ? {
@@ -360,11 +411,126 @@ export async function getPostDetail(
       views: 1
     }
   });
+  const comments = await prisma.postComment.count({
+    where: { postId: id }
+  });
+  const refreshedMetric = await prisma.rankingMetric.update({
+    where: { postId: id },
+    data: {
+      feedbackScore: calculateFeedbackScore({
+        ...rankingMetric,
+        comments
+      })
+    }
+  });
 
   return serializePost({
     ...post,
-    rankingMetric
+    rankingMetric: refreshedMetric
   });
+}
+
+export async function likePost(id: string) {
+  const post = await prisma.post.findFirst({
+    where: {
+      id,
+      status: "published"
+    },
+    select: { id: true }
+  });
+
+  if (!post) {
+    return null;
+  }
+
+  const metric = await prisma.rankingMetric.upsert({
+    where: { postId: id },
+    update: {
+      likes: { increment: 1 }
+    },
+    create: {
+      postId: id,
+      likes: 1
+    }
+  });
+  const comments = await prisma.postComment.count({
+    where: { postId: id }
+  });
+  const refreshedMetric = await prisma.rankingMetric.update({
+    where: { postId: id },
+    data: {
+      feedbackScore: calculateFeedbackScore({
+        ...metric,
+        comments
+      })
+    }
+  });
+
+  return serializeMetric(refreshedMetric);
+}
+
+export async function createPostComment(id: string, body: string) {
+  const post = await prisma.post.findFirst({
+    where: {
+      id,
+      status: "published"
+    },
+    select: { id: true }
+  });
+
+  if (!post) {
+    return null;
+  }
+
+  let currentUser: Awaited<ReturnType<typeof getCurrentUser>> = null;
+
+  try {
+    currentUser = await getCurrentUser();
+  } catch {
+    currentUser = null;
+  }
+
+  const result = await prisma.$transaction(async (tx) => {
+    const comment = await tx.postComment.create({
+      data: {
+        postId: id,
+        authorId: currentUser?.id,
+        authorName: currentUser?.name ?? "匿名读者",
+        body
+      }
+    });
+    const metric = await tx.rankingMetric.upsert({
+      where: { postId: id },
+      update: {},
+      create: {
+        postId: id
+      }
+    });
+    const comments = await tx.postComment.count({
+      where: { postId: id }
+    });
+    const refreshedMetric = await tx.rankingMetric.update({
+      where: { postId: id },
+      data: {
+        feedbackScore: calculateFeedbackScore({
+          ...metric,
+          comments
+        })
+      }
+    });
+
+    return {
+      comment: {
+        id: comment.id,
+        body: comment.body,
+        authorName: comment.authorName,
+        createdAt: comment.createdAt
+      },
+      metric: serializeMetric(refreshedMetric)
+    };
+  });
+
+  return result;
 }
 
 export async function updatePost(id: string, input: PostInput) {

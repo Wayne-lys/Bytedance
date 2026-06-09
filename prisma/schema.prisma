@@ -24,6 +24,7 @@ model User {
   promptTemplates  PromptTemplate[]
   drafts           Draft[]
   posts            Post[]
+  comments         PostComment[]
 }
 
 model RoleDefinition {
@@ -131,6 +132,22 @@ model Post {
   qualityScore     QualityScore?
   rankingMetric    RankingMetric?
   materials        PostMaterial[]
+  comments         PostComment[]
+}
+
+model PostComment {
+  id         String   @id @default(cuid())
+  postId     String
+  authorId   String?
+  authorName String
+  body       String
+  createdAt  DateTime @default(now())
+
+  post   Post  @relation(fields: [postId], references: [id], onDelete: Cascade)
+  author User? @relation(fields: [authorId], references: [id], onDelete: SetNull)
+
+  @@index([postId, createdAt])
+  @@index([authorId])
 }
 
 model PostMaterial {

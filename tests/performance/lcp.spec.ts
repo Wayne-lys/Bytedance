@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { reviewAndScoreContent } from "../../src/features/moderation/moderation-service";
 
 declare global {
   interface Window {
@@ -27,16 +28,25 @@ test("rankings and content detail stay within the LCP target", async ({
   page,
   request
 }) => {
+  const postInput = {
+    title: `LCP performance validation ${Date.now()}`,
+    body: "This lightweight short article is used for performance validation. The first screen should render quickly and consistently.",
+    tags: ["performance", "lcp", "validation"],
+    coverUrl: "/demo-materials/cafe-cover.svg",
+    platform: "Toutiao"
+  };
+  const review = await reviewAndScoreContent(postInput);
   const publishResponse = await request.post("/api/posts", {
     data: {
-      title: `LCP 验证内容 ${Date.now()}`,
-      body: "这是一篇用于性能验证的短图文内容，正文保持轻量，首屏可以稳定渲染。",
-      tags: ["性能", "LCP", "验证"],
-      coverUrl: "/demo-materials/cafe-cover.svg",
-      platform: "头条"
+      ...postInput,
+      reviewToken: review.reviewToken
     }
   });
   const publishPayload = await publishResponse.json();
+  expect(
+    publishResponse.ok(),
+    `publish failed: ${publishResponse.status()} ${JSON.stringify(publishPayload)}`
+  ).toBe(true);
   const detailUrl = `/content/${publishPayload.data.post.id}`;
 
   const rankingsLcp = await measureLcp(page, "/rankings");

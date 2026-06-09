@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { PostFeedbackPanel } from "@/components/post-feedback-panel";
 import { QualityScoreCard } from "@/components/quality-score-card";
 import { StatusBadge } from "@/components/status-badge";
 import { getPostDetail } from "@/features/posts/post-service";
@@ -77,6 +78,24 @@ function deriveFreshnessScore(publishedAt: Date | string | null | undefined) {
   return clampPercent(100 - ageDays * 12);
 }
 
+function deriveHeatScore(post: PostDetail) {
+  const metric = post.rankingMetric;
+
+  if (!metric) {
+    return 0;
+  }
+
+  if (metric.heatScore > 0) {
+    return metric.heatScore;
+  }
+
+  return clampPercent(metric.views * 0.03 + metric.likes * 0.35 + metric.saves * 0.25);
+}
+
+function getFeedbackScore(post: PostDetail) {
+  return clampPercent(post.rankingMetric?.feedbackScore ?? 0);
+}
+
 function getSafetyScore(riskLevel: string | null | undefined) {
   if (riskLevel === "high") {
     return 0;
@@ -111,20 +130,30 @@ function formatRiskLevel(riskLevel: string | null | undefined) {
 
 function getRankingScore(post: PostDetail) {
   const qualityScore = post.qualitySummary?.total ?? 0;
+  const heatScore = deriveHeatScore(post);
   const freshnessScore =
     post.rankingMetric?.freshnessScore && post.rankingMetric.freshnessScore > 0
       ? post.rankingMetric.freshnessScore
       : deriveFreshnessScore(post.publishedAt);
+  const feedbackScore = getFeedbackScore(post);
   const riskPenalty = post.rankingMetric?.riskPenalty ?? 0;
 
-  return clampPercent(qualityScore * 0.75 + freshnessScore * 0.25 - riskPenalty);
+  return clampPercent(
+    qualityScore * 0.45 +
+      heatScore * 0.3 +
+      freshnessScore * 0.15 +
+      feedbackScore * 0.1 -
+      riskPenalty
+  );
 }
 
 function getRankingFactors(post: PostDetail) {
+  const heatScore = deriveHeatScore(post);
   const freshnessScore =
     post.rankingMetric?.freshnessScore && post.rankingMetric.freshnessScore > 0
       ? post.rankingMetric.freshnessScore
       : deriveFreshnessScore(post.publishedAt);
+  const feedbackScore = getFeedbackScore(post);
   const riskLevel = post.moderationResult?.riskLevel;
 
   return [
@@ -134,19 +163,24 @@ function getRankingFactors(post: PostDetail) {
       note: "标题、结构和信息密度"
     },
     {
+      label: "阅读热度",
+      value: heatScore,
+      note: `${formatNumber(post.rankingMetric?.views)} 阅读 / ${formatNumber(post.rankingMetric?.likes)} 点赞`
+    },
+    {
       label: "发布时效",
       value: freshnessScore,
       note: "发布时间与榜单时效"
     },
     {
+      label: "用户反馈",
+      value: feedbackScore,
+      note: `${formatNumber(post.comments.length)} 条评论参与推荐排序`
+    },
+    {
       label: "审核安全",
       value: getSafetyScore(riskLevel),
       note: formatRiskLevel(riskLevel)
-    },
-    {
-      label: "平台适配",
-      value: post.qualitySummary?.platformFit ?? 0,
-      note: "适合目标平台分发"
     }
   ];
 }
@@ -326,6 +360,13 @@ export default async function ContentDetailPage({
             </div>
           )}
 
+          <PostFeedbackPanel
+            postId={post.id}
+            initialLikes={post.rankingMetric?.likes ?? 0}
+            initialFeedbackScore={post.rankingMetric?.feedbackScore ?? 0}
+            initialComments={post.comments}
+          />
+
           <a
             href={returnTarget.href}
             className="studio-button inline-flex h-12 w-full items-center justify-center border border-line bg-panel text-base font-semibold text-ink hover:border-accent"
@@ -359,11 +400,11 @@ function RankingDetailView({
           suffix: "次",
           description: null
         }
-      : {
+        : {
           label: "推荐分",
           value: String(rankingScore),
           suffix: "/ 100",
-          description: "综合内容质量、发布时效、审核安全和平台适配。"
+          description: "综合内容质量、阅读热度、发布时间、用户反馈和风险扣分。"
         };
 
   return (
@@ -426,6 +467,8 @@ function RankingDetailView({
                 {[
                   ["发布时间", formatDate(post.publishedAt)],
                   ["阅读次数", `${formatNumber(readCount)} 次`],
+                  ["点赞数量", `${formatNumber(post.rankingMetric?.likes)} 次`],
+                  ["评论数量", `${formatNumber(post.comments.length)} 条`],
                   ["审核状态", formatRiskLevel(post.moderationResult?.riskLevel)],
                   ["素材数量", `${mediaCount} 个`],
                   ["发布者", post.author.name]
@@ -491,6 +534,13 @@ function RankingDetailView({
               </div>
             </div>
           </div>
+
+          <PostFeedbackPanel
+            postId={post.id}
+            initialLikes={post.rankingMetric?.likes ?? 0}
+            initialFeedbackScore={post.rankingMetric?.feedbackScore ?? 0}
+            initialComments={post.comments}
+          />
 
           <a
             href={returnHref}

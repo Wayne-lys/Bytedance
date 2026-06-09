@@ -18,14 +18,47 @@ describe("ranking service", () => {
       riskPenalty: 4
     });
 
-    expect(result.rankingScore).toBe(71);
+    expect(result.rankingScore).toBe(67);
     expect(result.explanation).toEqual({
-      qualityContribution: 60,
-      heatContribution: 0,
-      freshnessContribution: 15,
-      feedbackContribution: 0,
+      qualityContribution: 36,
+      heatContribution: 21,
+      freshnessContribution: 9,
+      feedbackContribution: 5,
       riskPenalty: 4
     });
+  });
+
+  it("lets real heat and user feedback lift recommended content", () => {
+    const ranked = rankItems([
+      {
+        postId: "high-quality-quiet",
+        title: "高质量但低互动",
+        publishedAt: basePublishedAt,
+        qualityScore: 90,
+        heatScore: 10,
+        freshnessScore: 60,
+        feedbackScore: 5,
+        riskPenalty: 0
+      },
+      {
+        postId: "active-reader-choice",
+        title: "读者反馈强的内容",
+        publishedAt: basePublishedAt,
+        qualityScore: 75,
+        heatScore: 100,
+        freshnessScore: 90,
+        feedbackScore: 100,
+        riskPenalty: 0
+      }
+    ]);
+
+    expect(ranked.map((item) => item.postId)).toEqual([
+      "active-reader-choice",
+      "high-quality-quiet"
+    ]);
+    expect(ranked[0].explanation.feedbackContribution).toBeGreaterThan(
+      ranked[1].explanation.feedbackContribution
+    );
   });
 
   it("sorts by ranking score, then freshness, then stable id", () => {

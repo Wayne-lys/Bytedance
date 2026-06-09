@@ -58,4 +58,4 @@ The total score is used by the review UI and ranking formula.
 - `withdraw`: mark content as withdrawn by the creator/operator.
 - `rollback`: restore governed content to the published state after review.
 
-The ranking API only reads `published` content, so offline and withdrawn content immediately leaves the hot, viral, and recommended feeds.
+The ranking API only reads `published` content, so offline and withdrawn content immediately leaves the hot, latest, and recommended feeds.

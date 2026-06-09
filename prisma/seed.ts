@@ -6,6 +6,7 @@ const prisma = new PrismaClient();
 async function main() {
   const passwordHash = await bcrypt.hash("Demo123456", 10);
 
+  await prisma.postComment.deleteMany();
   await prisma.rankingMetric.deleteMany();
   await prisma.qualityScore.deleteMany();
   await prisma.moderationResult.deleteMany();
@@ -248,6 +249,15 @@ async function main() {
       freshnessScore: 92,
       riskPenalty: 0,
       rankingScore: 83.6
+    }
+  });
+
+  await prisma.postComment.create({
+    data: {
+      postId: post.id,
+      authorId: demoUser.id,
+      authorName: demoUser.name,
+      body: "这条通勤清单很适合信息流展示，评论和点赞会参与推荐排序。"
     }
   });
 }
