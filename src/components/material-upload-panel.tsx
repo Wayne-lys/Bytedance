@@ -148,7 +148,7 @@ export function MaterialUploadPanel() {
       </button>
 
       {!isOpen && uploadState.status === "success" ? (
-        <div className="mt-3 rounded-md border border-teal/20 bg-teal/10 px-3 py-2 text-sm text-teal sm:absolute sm:right-0 sm:top-12 sm:z-20 sm:mt-0 sm:w-72">
+        <div className="pointer-events-none mt-3 rounded-md border border-teal/20 bg-teal/10 px-3 py-2 text-sm text-teal sm:absolute sm:right-0 sm:top-12 sm:z-20 sm:mt-0 sm:w-72">
           <div className="flex items-center justify-between gap-3">
             <span className="font-semibold">上传成功，素材已加入列表</span>
             <StatusBadge tone={uploadState.compliance}>

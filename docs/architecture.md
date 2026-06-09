@@ -50,7 +50,9 @@ The central content entity is `Post`. A published post owns one moderation resul
 - `AI_API_KEY`
 - `AI_MODEL`
 
-Otherwise it uses a deterministic mock provider. The creation studio also includes a client-side fallback so demo flow remains stable if an external AI service is unavailable.
+For the official Ark resource pool, `AI_BASE_URL` defaults to `https://ark.cn-beijing.volces.com/api/v3` when a key and EP/model are configured. The resolver also accepts `ARK_API_KEY`, `ARK_MODEL`, `ARK_ENDPOINT_ID`, `ARK_BASE_URL`, and `ARK_USER` aliases so the challenge resource-pool naming can be used without code changes. `AI_USER`/`ARK_USER` is forwarded as the optional request user identifier.
+
+Otherwise it uses a deterministic mock provider. The creation studio also includes a client-side fallback so demo flow remains stable if an external AI service is unavailable. Real EPs and API keys must remain in `.env` or the deployment provider's secret store and must never be committed.
 
 ## Production Evolution
 

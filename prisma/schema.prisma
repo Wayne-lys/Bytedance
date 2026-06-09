@@ -13,15 +13,29 @@ model User {
   phone        String?  @unique
   passwordHash String?
   name         String
+  role         String   @default("creator")
   avatarUrl    String?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
   phoneCodes       PhoneCode[]
+  emailCodes       EmailCode[]
   materials        Material[]
   promptTemplates  PromptTemplate[]
   drafts           Draft[]
   posts            Post[]
+}
+
+model RoleDefinition {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  label       String
+  permissions String
+  system      Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([system])
 }
 
 model PhoneCode {
@@ -37,6 +51,19 @@ model PhoneCode {
   @@index([phone])
 }
 
+model EmailCode {
+  id        String   @id @default(cuid())
+  email     String
+  code      String
+  consumed  Boolean  @default(false)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id])
+
+  @@index([email])
+}
+
 model Material {
   id             String   @id @default(cuid())
   ownerId        String
@@ -49,7 +76,8 @@ model Material {
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
-  owner User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  owner         User           @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  postMaterials PostMaterial[]
 }
 
 model PromptTemplate {
@@ -102,6 +130,20 @@ model Post {
   moderationResult ModerationResult?
   qualityScore     QualityScore?
   rankingMetric    RankingMetric?
+  materials        PostMaterial[]
+}
+
+model PostMaterial {
+  postId     String
+  materialId String
+  position   Int      @default(0)
+  createdAt  DateTime @default(now())
+
+  post     Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  material Material @relation(fields: [materialId], references: [id], onDelete: Cascade)
+
+  @@id([postId, materialId])
+  @@index([materialId])
 }
 
 model ModerationResult {

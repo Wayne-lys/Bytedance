@@ -1,5 +1,11 @@
 import { z } from "zod";
-import { getPostDetail, updatePost } from "@/features/posts/post-service";
+import {
+  getPostDetail,
+  PublishBlockedError,
+  PublishReviewRequiredError,
+  publishBlockPayload,
+  updatePost
+} from "@/features/posts/post-service";
 import { jsonError, jsonOk } from "@/lib/http";
 
 const updateSchema = z.object({
@@ -7,7 +13,8 @@ const updateSchema = z.object({
   body: z.string().min(1, "请输入正文"),
   tags: z.union([z.array(z.string()), z.string()]).default([]),
   coverUrl: z.string().nullable().optional(),
-  platform: z.string().default("头条")
+  platform: z.string().default("头条"),
+  reviewToken: z.string().optional()
 });
 
 export async function GET(
@@ -33,11 +40,30 @@ export async function PATCH(
     return jsonError(input.error.issues[0]?.message ?? "更新参数无效", 422);
   }
 
-  const post = await updatePost(params.id, input.data);
+  try {
+    const post = await updatePost(params.id, input.data);
 
-  if (!post) {
-    return jsonError("内容不存在", 404);
+    if (!post) {
+      return jsonError("内容不存在", 404);
+    }
+
+    return jsonOk({ post });
+  } catch (error) {
+    if (error instanceof PublishBlockedError) {
+      return Response.json(
+        {
+          ok: false,
+          error: error.message,
+          data: publishBlockPayload(error)
+        },
+        { status: 409 }
+      );
+    }
+
+    if (error instanceof PublishReviewRequiredError) {
+      return jsonError(error.message, 428);
+    }
+
+    return jsonError(error instanceof Error ? error.message : "更新失败", 500);
   }
-
-  return jsonOk({ post });
 }

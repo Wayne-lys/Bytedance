@@ -15,16 +15,38 @@ async function main() {
   await prisma.promptTemplate.deleteMany();
   await prisma.auditRule.deleteMany();
   await prisma.evaluationCase.deleteMany();
+  await prisma.emailCode.deleteMany();
   await prisma.phoneCode.deleteMany();
 
   const demoUser = await prisma.user.upsert({
     where: { email: "creator@example.com" },
-    update: {},
+    update: {
+      phone: "13800000000",
+      passwordHash,
+      name: "训练营创作者",
+      role: "creator"
+    },
     create: {
       email: "creator@example.com",
       phone: "13800000000",
       passwordHash,
-      name: "训练营创作者"
+      name: "训练营创作者",
+      role: "creator"
+    }
+  });
+
+  await prisma.user.upsert({
+    where: { email: "admin@example.com" },
+    update: {
+      passwordHash,
+      name: "演示管理员",
+      role: "admin"
+    },
+    create: {
+      email: "admin@example.com",
+      passwordHash,
+      name: "演示管理员",
+      role: "admin"
     }
   });
 
@@ -81,7 +103,7 @@ async function main() {
         category: "涉毒",
         description: "识别毒品、违禁药物和交易暗语",
         riskLevel: "high",
-        pattern: "毒品|冰毒|大麻|违禁药",
+        pattern: "毒品|冰毒|大麻|违禁药|海洛因|摇头丸|K粉|麻古|吸\\s*毒|吸食毒品|嗑\\s*药|贩\\s*毒|制\\s*毒|买\\s*毒|卖\\s*毒",
         action: "block"
       },
       {

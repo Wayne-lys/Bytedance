@@ -3,7 +3,7 @@ import { getRankingItems } from "@/features/ranking/ranking-service";
 import { jsonError, jsonOk } from "@/lib/http";
 
 const rankingQuerySchema = z.object({
-  type: z.enum(["hot", "viral", "recommended"]).default("hot"),
+  type: z.enum(["hot", "latest", "recommended"]).default("hot"),
   cursor: z.string().nullable().optional(),
   limit: z.coerce.number().int().min(1).max(20).default(10)
 });

@@ -1,6 +1,8 @@
 import { PostGovernanceActions } from "@/components/post-governance-actions";
 import { StatusBadge } from "@/components/status-badge";
+import { hasPermissionAsync } from "@/features/auth/role-service";
 import { listPosts } from "@/features/posts/post-service";
+import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 
 const statusTabs = [
@@ -56,6 +58,21 @@ export default async function PostsPage({
 }: {
   searchParams?: { status?: string };
 }) {
+  const currentUser = await getCurrentUser();
+  const canReviewContent = await hasPermissionAsync(currentUser?.role, "review_content");
+
+  if (!currentUser || !canReviewContent) {
+    return (
+      <section className="studio-panel p-6">
+        <p className="text-xs font-semibold text-accent">Content Ops</p>
+        <h2 className="mt-2 text-3xl font-semibold text-ink">内容管理</h2>
+        <div className="mt-5 rounded-md border border-line bg-panel-muted px-4 py-3 text-sm leading-6 text-muted">
+          当前账号没有内容治理权限。请使用审核员或管理员账号登录后再操作。
+        </div>
+      </section>
+    );
+  }
+
   const activeStatus = searchParams?.status ?? "published";
   const [drafts, publishedPosts, rejectedPosts, offlinePosts, withdrawnPosts] = await Promise.all([
     prisma.draft.findMany({
@@ -172,7 +189,7 @@ export default async function PostsPage({
             visiblePosts.map((post) => (
               <article
                 key={post.id}
-                className="grid gap-4 border-b border-line p-5 last:border-b-0 xl:grid-cols-[1fr_140px_220px]"
+                className="grid gap-4 border-b border-line p-5 last:border-b-0 xl:grid-cols-[minmax(0,1fr)_92px_184px] xl:items-center"
               >
                 <a href={`/content/${post.id}`} className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
@@ -186,31 +203,27 @@ export default async function PostsPage({
                     {formatDate(post.publishedAt)} · {post.tags.join(" / ")}
                   </p>
                 </a>
-                <div className="self-center">
-                  <p className="text-xs text-muted">质量总分</p>
-                  <p className="mt-1 text-2xl font-semibold text-ink">
+                <div className="rounded-md border border-line bg-panel/70 px-3 py-2 text-center">
+                  <p className="text-xs font-semibold text-muted">质量总分</p>
+                  <p className="mt-1 text-2xl font-semibold leading-none text-ink">
                     {post.qualitySummary?.total ?? 0}
                   </p>
                 </div>
-                <div className="flex flex-wrap items-center gap-2 xl:justify-end">
-                  <a
-                    href={`/create?postId=${post.id}`}
-                    className="studio-button border border-line px-3 py-2 text-sm font-semibold text-ink hover:border-accent"
-                  >
-                    二次编辑
-                  </a>
-                  <a
-                    href={`/review?postId=${post.id}`}
-                    className="studio-button border border-line px-3 py-2 text-sm font-semibold text-ink hover:border-accent"
-                  >
-                    重新审核
-                  </a>
-                  <a
-                    href={`/content/${post.id}`}
-                    className="studio-button bg-accent px-3 py-2 text-sm font-semibold text-white shadow-crisp hover:bg-sidebar"
-                  >
-                    查看详情
-                  </a>
+                <div className="grid gap-2 rounded-md border border-line bg-panel/60 p-2">
+                  <div className="grid grid-cols-2 gap-2">
+                    <a
+                      href={`/create?postId=${post.id}`}
+                      className="studio-button flex h-8 items-center justify-center border border-line bg-panel px-2 text-xs font-semibold text-ink hover:border-accent"
+                    >
+                      二次编辑
+                    </a>
+                    <a
+                      href={`/review?postId=${post.id}`}
+                      className="studio-button flex h-8 items-center justify-center border border-line bg-panel px-2 text-xs font-semibold text-ink hover:border-accent"
+                    >
+                      重新审核
+                    </a>
+                  </div>
                   <PostGovernanceActions postId={post.id} status={post.status} />
                 </div>
               </article>

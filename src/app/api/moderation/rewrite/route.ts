@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { rewriteCompliantContent } from "@/features/moderation/moderation-service";
+import { getCurrentUser } from "@/lib/auth";
 import { jsonError, jsonOk } from "@/lib/http";
 
 const rewriteSchema = z.object({
@@ -7,6 +8,12 @@ const rewriteSchema = z.object({
 });
 
 export async function POST(request: Request) {
+  const user = await getCurrentUser();
+
+  if (!user) {
+    return jsonError("未登录", 401);
+  }
+
   const input = rewriteSchema.safeParse(await request.json());
 
   if (!input.success) {

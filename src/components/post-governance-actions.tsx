@@ -19,10 +19,12 @@ function actionLabel(action: DistributionAction) {
 
 export function PostGovernanceActions({
   postId,
-  status
+  status,
+  className = ""
 }: {
   postId: string;
   status: string;
+  className?: string;
 }) {
   const router = useRouter();
   const [pending, setPending] = useState<DistributionAction | null>(null);
@@ -49,18 +51,18 @@ export function PostGovernanceActions({
     status === "published" ? ["offline", "withdraw"] : ["rollback"];
 
   return (
-    <>
+    <div className={`grid grid-cols-2 gap-2 ${className}`}>
       {actions.map((action) => (
         <button
           key={action}
           type="button"
           onClick={() => void runAction(action)}
           disabled={pending !== null}
-          className="studio-button border border-line px-3 py-2 text-sm font-semibold text-ink hover:border-accent disabled:cursor-not-allowed disabled:opacity-60"
+          className="studio-button h-8 border border-line bg-panel px-2 text-xs font-semibold text-ink hover:border-accent disabled:cursor-not-allowed disabled:opacity-60"
         >
           {pending === action ? "处理中" : actionLabel(action)}
         </button>
       ))}
-    </>
+    </div>
   );
 }

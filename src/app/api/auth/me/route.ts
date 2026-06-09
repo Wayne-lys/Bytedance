@@ -1,4 +1,5 @@
 import { getCurrentUser } from "@/lib/auth";
+import { serializeUserPermissions } from "@/lib/authorization";
 import { jsonError, jsonOk } from "@/lib/http";
 
 export async function GET() {
@@ -13,7 +14,8 @@ export async function GET() {
       id: user.id,
       email: user.email,
       phone: user.phone,
-      name: user.name
+      name: user.name,
+      ...(await serializeUserPermissions(user))
     }
   });
 }

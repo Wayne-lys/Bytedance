@@ -1,12 +1,12 @@
 # AI 创作者辅助生产与分发平台
 
-面向“头条 AI 前端训练营”的全栈 MVP，覆盖短图文创作者从登录、素材管理、AI 生成、草稿保存、内容审核、发布、榜单分发到效果评估的完整闭环。
+面向“头条 AI 前端训练营”的全栈 MVP，覆盖短图文创作者从登录、素材管理、AI 生成、草稿保存、内容审核、发布到榜单分发的完整闭环。
 
 ## 功能覆盖
 
 | PDF 要求 | 当前实现 |
 | --- | --- |
-| 手机号或邮箱注册登录 | 邮箱密码登录/注册、模拟手机验证码登录/自动注册、安全退出 |
+| 手机号或邮箱注册登录 | 邮箱验证码注册、邮箱密码登录、手机号验证码登录/自动注册、安全退出；可接火山短信和 SMTP 邮件 |
 | Prompt 管理 | Prompt 模板服务、API、创作台模板选择与新增 |
 | 多媒体素材管理 | 素材库、素材合规校验、素材 API |
 | AI 生成图文内容 | OpenAI/火山方舟兼容 provider + mock fallback，创作台一键生成 |
@@ -32,10 +32,10 @@ npm run dev
 
 演示账号：
 
-- 邮箱：`creator@example.com`
-- 密码：`Demo123456`
+- 普通创作者：`creator@example.com` / `Demo123456`
+- 管理员：`admin@example.com` / `Demo123456`
 - 模拟手机号：`13800000000`
-- 模拟验证码：登录页点击“获取验证码”后会直接显示演示验证码
+- 本地未配置火山短信/邮件时，登录页点击“获取验证码”会显示调试验证码；配置后会真实发送，不再返回验证码给前端。
 
 ## 环境变量
 
@@ -43,14 +43,23 @@ npm run dev
 
 ```env
 DATABASE_URL="file:./dev.db"
-AI_BASE_URL=""
-AI_API_KEY=""
-AI_MODEL=""
+AI_BASE_URL="https://ark.cn-beijing.volces.com/api/v3"
+AI_API_KEY="<your-api-key>"
+AI_MODEL="<your-endpoint-id-or-model-id>"
+AI_USER="<your-challenge-email>"
 SESSION_SECRET="replace-with-a-long-random-secret"
+VERIFICATION_CODE_SECRET="replace-with-a-different-long-random-secret"
+REVIEW_TOKEN_SECRET="replace-with-a-review-token-secret"
 APP_URL="http://localhost:3000"
 ```
 
-AI 配置为空时自动使用 mock provider。若接入火山方舟或 OpenAI 兼容接口，填写 `AI_BASE_URL`、`AI_API_KEY`、`AI_MODEL`。
+AI 配置为空时自动使用 mock provider。若接入火山方舟官方资源池，可把挑战下发的 EP/模型标识填入 `AI_MODEL`，把 key 填入 `AI_API_KEY`，把参赛邮箱填入 `AI_USER`。也兼容 `ARK_API_KEY`、`ARK_MODEL`、`ARK_ENDPOINT_ID`、`ARK_BASE_URL`、`ARK_USER` 变量；真实 EP 和 API key 只允许写入本机 `.env` 或部署平台环境变量，不能提交到代码仓库或文档。
+
+验证码发送：
+
+- 火山短信：配置 `VOLC_ACCESSKEY`、`VOLC_SECRETKEY`、`VOLC_SMS_ACCOUNT`、`VOLC_SMS_SIGN`、`VOLC_SMS_TEMPLATE_ID` 后，手机号登录使用火山 `SendSmsVerifyCode` / `CheckSmsVerifyCode`。
+- 火山邮件/SMTP：配置 `VOLC_EMAIL_SMTP_HOST`、`VOLC_EMAIL_SMTP_USER`、`VOLC_EMAIL_SMTP_PASS`、`VOLC_EMAIL_FROM` 后，邮箱注册验证码通过 SMTP 发送。
+- 未配置时使用本地 mock，非生产环境会返回调试验证码，生产环境不会返回验证码。
 
 ## 常用脚本
 

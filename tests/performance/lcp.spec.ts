@@ -1,5 +1,11 @@
 import { expect, test } from "@playwright/test";
 
+declare global {
+  interface Window {
+    __lcp?: number;
+  }
+}
+
 async function measureLcp(page: import("@playwright/test").Page, url: string) {
   await page.addInitScript(() => {
     window.__lcp = 0;

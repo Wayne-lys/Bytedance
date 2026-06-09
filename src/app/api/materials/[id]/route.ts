@@ -1,10 +1,17 @@
 import { prisma } from "@/lib/db";
+import { requirePermission } from "@/lib/authorization";
 import { jsonError, jsonOk } from "@/lib/http";
 
 export async function DELETE(
   _request: Request,
   { params }: { params: { id: string } }
 ) {
+  const authorization = await requirePermission("manage_materials");
+
+  if (!authorization.ok) {
+    return authorization.response;
+  }
+
   const material = await prisma.material.findUnique({
     where: { id: params.id },
     select: { id: true }

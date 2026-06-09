@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   calculateRankingScore,
   paginateRankings,
+  rankLatestItems,
   rankItems
 } from "@/features/ranking/ranking-service";
 
@@ -17,12 +18,12 @@ describe("ranking service", () => {
       riskPenalty: 4
     });
 
-    expect(result.rankingScore).toBe(67);
+    expect(result.rankingScore).toBe(71);
     expect(result.explanation).toEqual({
-      qualityContribution: 36,
-      heatContribution: 21,
-      freshnessContribution: 9,
-      feedbackContribution: 5,
+      qualityContribution: 60,
+      heatContribution: 0,
+      freshnessContribution: 15,
+      feedbackContribution: 0,
       riskPenalty: 4
     });
   });
@@ -62,6 +63,36 @@ describe("ranking service", () => {
     ]);
 
     expect(ranked.map((item) => item.postId)).toEqual(["post-a", "post-b", "post-c"]);
+  });
+
+  it("sorts latest items by publish time before ranking score", () => {
+    const ranked = rankLatestItems([
+      {
+        postId: "post-high-score",
+        title: "高分旧内容",
+        publishedAt: new Date("2026-05-27T08:00:00.000Z"),
+        qualityScore: 95,
+        heatScore: 90,
+        freshnessScore: 80,
+        feedbackScore: 70,
+        riskPenalty: 0
+      },
+      {
+        postId: "post-low-score",
+        title: "低分新内容",
+        publishedAt: new Date("2026-05-29T08:00:00.000Z"),
+        qualityScore: 60,
+        heatScore: 50,
+        freshnessScore: 40,
+        feedbackScore: 30,
+        riskPenalty: 0
+      }
+    ]);
+
+    expect(ranked.map((item) => item.postId)).toEqual([
+      "post-low-score",
+      "post-high-score"
+    ]);
   });
 
   it("paginates ranked items with next cursor", () => {

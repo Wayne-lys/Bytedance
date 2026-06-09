@@ -37,7 +37,7 @@ export function resolveDraftConflict({
 
 export async function getLatestDraft(authorId: string) {
   return prisma.draft.findFirst({
-    where: { authorId },
+    where: { authorId, status: "draft" },
     orderBy: { updatedAt: "desc" }
   });
 }
@@ -56,37 +56,46 @@ export async function saveDraft(input: {
   version?: number;
   localState?: string;
 }) {
+  const data = {
+    title: input.title,
+    body: input.body,
+    tags: input.tags,
+    coverUrl: input.coverUrl,
+    topic: input.topic,
+    audience: input.audience,
+    platform: input.platform,
+    style: input.style,
+    localState: input.localState ?? "synced"
+  };
+
   if (input.id) {
-    return prisma.draft.update({
-      where: { id: input.id },
-      data: {
-        title: input.title,
-        body: input.body,
-        tags: input.tags,
-        coverUrl: input.coverUrl,
-        topic: input.topic,
-        audience: input.audience,
-        platform: input.platform,
-        style: input.style,
-        version: { increment: 1 },
-        localState: input.localState ?? "synced"
-      }
+    const existingDraft = await prisma.draft.findFirst({
+      where: {
+        id: input.id,
+        authorId: input.authorId,
+        status: "draft"
+      },
+      select: { id: true }
     });
+
+    if (existingDraft) {
+      return prisma.draft.update({
+        where: { id: existingDraft.id },
+        data: {
+          ...data,
+          status: "draft",
+          version: { increment: 1 }
+        }
+      });
+    }
   }
 
   return prisma.draft.create({
     data: {
       authorId: input.authorId,
-      title: input.title,
-      body: input.body,
-      tags: input.tags,
-      coverUrl: input.coverUrl,
-      topic: input.topic,
-      audience: input.audience,
-      platform: input.platform,
-      style: input.style,
-      version: input.version ?? 1,
-      localState: input.localState ?? "synced"
+      ...data,
+      status: "draft",
+      version: input.version ?? 1
     }
   });
 }

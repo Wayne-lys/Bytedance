@@ -1,4 +1,5 @@
 import bcrypt from "bcryptjs";
+import crypto from "crypto";
 import { cookies } from "next/headers";
 import { prisma } from "@/lib/db";
 
@@ -13,7 +14,38 @@ export async function verifyPassword(password: string, hash: string) {
 }
 
 export function createPhoneCode() {
-  return "246810";
+  return createVerificationCode();
+}
+
+export function createVerificationCode() {
+  if (process.env.NODE_ENV === "test") {
+    return "246810";
+  }
+
+  return crypto.randomInt(0, 1_000_000).toString().padStart(6, "0");
+}
+
+function verificationSecret() {
+  return (
+    process.env.VERIFICATION_CODE_SECRET ||
+    process.env.SESSION_SECRET ||
+    "local-verification-code-secret"
+  );
+}
+
+export function hashVerificationCode({
+  channel,
+  target,
+  code
+}: {
+  channel: "email" | "phone";
+  target: string;
+  code: string;
+}) {
+  return crypto
+    .createHmac("sha256", verificationSecret())
+    .update(`${channel}:${target}:${code}`)
+    .digest("hex");
 }
 
 export function sessionCookieName() {

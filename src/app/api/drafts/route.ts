@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { getLatestDraft, saveDraft } from "@/features/drafts/draft-service";
+import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { jsonError, jsonOk } from "@/lib/http";
 
@@ -16,31 +17,23 @@ const draftSchema = z.object({
   localState: z.string().optional()
 });
 
-async function getDemoAuthorId() {
-  const user = await prisma.user.findFirst({
-    orderBy: { createdAt: "asc" }
-  });
-
-  return user?.id;
-}
-
 export async function GET(request: Request) {
-  const authorId = await getDemoAuthorId();
+  const user = await getCurrentUser();
 
-  if (!authorId) {
-    return jsonError("缺少演示用户，请先运行 seed。", 500);
+  if (!user) {
+    return jsonError("未登录", 401);
   }
 
   const url = new URL(request.url);
 
   if (url.searchParams.get("latest") === "true") {
-    const draft = await getLatestDraft(authorId);
+    const draft = await getLatestDraft(user.id);
 
     return jsonOk({ draft });
   }
 
   const drafts = await prisma.draft.findMany({
-    where: { authorId },
+    where: { authorId: user.id },
     orderBy: { updatedAt: "desc" }
   });
 
@@ -48,10 +41,10 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
-  const authorId = await getDemoAuthorId();
+  const user = await getCurrentUser();
 
-  if (!authorId) {
-    return jsonError("缺少演示用户，请先运行 seed。", 500);
+  if (!user) {
+    return jsonError("未登录", 401);
   }
 
   const input = draftSchema.safeParse(await request.json());
@@ -61,7 +54,7 @@ export async function POST(request: Request) {
   }
 
   const draft = await saveDraft({
-    authorId,
+    authorId: user.id,
     ...input.data
   });
 

@@ -6,15 +6,20 @@ import type {
   GenerateShortPostInput,
   GeneratedShortPost
 } from "@/features/ai/provider";
+import { interpolatePromptTemplate } from "@/features/ai/prompt-fallback";
 
 function buildPrompt(input: GenerateShortPostInput) {
+  const expandedPrompt = interpolatePromptTemplate(input);
+
   return [
     "你是内容创作者的 AI 助手，请生成一篇中文短图文草稿。",
+    "必须严格遵循当前 Prompt 模板；不同模板应产出显著不同的标题、正文结构和表达方式。",
     `选题：${input.topic}`,
     `目标受众：${input.audience}`,
     `发布平台：${input.platform}`,
     `风格：${input.style}`,
-    `Prompt 模板：${input.prompt}`,
+    `Prompt 模板原文：${input.prompt}`,
+    `已展开 Prompt：${expandedPrompt}`,
     `素材：${input.materials.join("、") || "无"}`,
     "返回 JSON，字段包括 title、body、tags、coverSuggestion、publishAdvice。"
   ].join("\n");
@@ -58,7 +63,8 @@ export function createOpenAiCompatibleProvider(config: AiProviderConfig): AiProv
               content: buildPrompt(input)
             }
           ],
-          temperature: 0.7
+          temperature: 0.7,
+          user: config.user
         });
         const content = completion.choices[0]?.message.content;
 

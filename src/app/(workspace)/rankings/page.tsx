@@ -8,22 +8,22 @@ const tabs: Array<{ id: RankingType; label: string; description: string }> = [
   {
     id: "hot",
     label: "热点榜",
-    description: "实时热度、质量和新鲜度综合排序。"
+    description: "按真实阅读次数由高到低排序。"
   },
   {
-    id: "viral",
-    label: "爆文榜",
-    description: "突出互动和传播潜力。"
+    id: "latest",
+    label: "新发布",
+    description: "按发布时间倒序展示最新内容。"
   },
   {
     id: "recommended",
     label: "推荐流",
-    description: "平衡质量、安全和用户反馈。"
+    description: "平衡质量、安全和平台适配。"
   }
 ];
 
 function normalizeType(type: string | undefined): RankingType {
-  if (type === "viral" || type === "recommended") {
+  if (type === "latest" || type === "recommended") {
     return type;
   }
 
@@ -47,17 +47,47 @@ export default async function RankingsPage({
         <div className="grid gap-0 lg:grid-cols-[minmax(0,1fr)_320px]">
           <div className="p-6">
             <p className="text-xs font-semibold text-accent">Distribution Desk</p>
-            <h2 className="mt-2 text-3xl font-semibold text-ink">热点与推荐榜单</h2>
+            <h2 className="mt-2 text-3xl font-semibold text-ink">内容分发榜单</h2>
             <p className="mt-3 max-w-3xl text-sm leading-6 text-muted">
-              质量分、热度、发布时间新鲜度、用户反馈和风险惩罚共同决定排序，支持 cursor 分页和滚动加载。
+              热点榜按阅读次数排序；新发布按时间排序，推荐流按质量和安全分发。
             </p>
           </div>
           <aside className="border-t border-line bg-sidebar p-6 text-white lg:border-l lg:border-t-0">
-            <p className="text-xs text-[#cbbfb1]">排序公式</p>
-            <p className="mt-3 text-lg font-semibold leading-7">
-              质量 45% / 热度 30% / 新鲜度 15% / 反馈 10%
-            </p>
-            <p className="mt-3 text-xs leading-5 text-[#a99d90]">风险惩罚会在最终分中扣减。</p>
+            {activeType === "latest" ? (
+              <>
+                <p className="text-xs text-[#cbbfb1]">排序规则</p>
+                <p className="mt-3 text-lg font-semibold leading-7">
+                  发布时间由新到旧
+                </p>
+                <p className="mt-3 text-xs leading-5 text-[#a99d90]">
+                  同一发布时间按内容 ID 稳定排序。
+                </p>
+              </>
+            ) : (
+              <>
+                {activeType === "hot" ? (
+                  <>
+                    <p className="text-xs text-[#cbbfb1]">排序规则</p>
+                    <p className="mt-3 text-lg font-semibold leading-7">
+                      阅读次数由高到低
+                    </p>
+                    <p className="mt-3 text-xs leading-5 text-[#a99d90]">
+                      打开内容详情即记录 1 次真实阅读。
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-xs text-[#cbbfb1]">排序公式</p>
+                    <p className="mt-3 text-lg font-semibold leading-7">
+                      质量 75% / 发布时效 25% / 风险扣分
+                    </p>
+                    <p className="mt-3 text-xs leading-5 text-[#a99d90]">
+                      用于推荐流的质量分发参考。
+                    </p>
+                  </>
+                )}
+              </>
+            )}
           </aside>
         </div>
 

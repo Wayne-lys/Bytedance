@@ -1,4 +1,8 @@
+import { AuditRuleCard } from "@/components/audit-rule-card";
+import { AuditRuleForm } from "@/components/audit-rule-form";
 import { StatusBadge } from "@/components/status-badge";
+import { hasPermissionAsync } from "@/features/auth/role-service";
+import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 
 const qualityDimensions = [
@@ -10,19 +14,22 @@ const qualityDimensions = [
   { name: "平台适配", description: "符合头条信息流图文内容的标题和正文节奏。" }
 ];
 
-function ruleTone(level: string) {
-  if (level === "high") {
-    return "blocked" as const;
-  }
-
-  if (level === "medium") {
-    return "warning" as const;
-  }
-
-  return "neutral" as const;
-}
-
 export default async function RulesPage() {
+  const currentUser = await getCurrentUser();
+  const canManageRules = await hasPermissionAsync(currentUser?.role, "manage_rules");
+
+  if (!currentUser || !canManageRules) {
+    return (
+      <section className="studio-panel p-6">
+        <p className="text-xs font-semibold text-accent">Policy System</p>
+        <h2 className="mt-2 text-3xl font-semibold text-ink">规则体系</h2>
+        <div className="mt-5 rounded-md border border-line bg-panel-muted px-4 py-3 text-sm leading-6 text-muted">
+          当前账号没有规则管理权限。请使用管理员账号登录后再操作。
+        </div>
+      </section>
+    );
+  }
+
   const rules = await prisma.auditRule.findMany({
     orderBy: [{ riskLevel: "desc" }, { category: "asc" }]
   });
@@ -54,31 +61,48 @@ export default async function RulesPage() {
         </div>
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
+      <div className="grid gap-4">
         <section className="studio-panel p-6">
-          <h3 className="text-xl font-semibold text-ink">内容安全规则</h3>
-          <div className="mt-5 grid gap-3">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+            <div>
+              <h3 className="text-xl font-semibold text-ink">内容安全规则</h3>
+              <p className="mt-1 text-sm text-muted">
+                {canManageRules
+                  ? "可新增临时审核规则，立刻进入规则库展示和后续审核说明。"
+                  : "当前为只读规则库。新增、编辑和删除规则需要管理员权限。"}
+              </p>
+            </div>
+          </div>
+          {canManageRules ? (
+            <div className="mt-4">
+              <AuditRuleForm />
+            </div>
+          ) : (
+            <div className="mt-4 rounded-md border border-line bg-panel-muted px-4 py-3 text-sm leading-6 text-muted">
+              只读模式：规则变更会影响全局审核结果，仅管理员可以维护。
+            </div>
+          )}
+          <div className="mt-5 grid gap-3 xl:grid-cols-2">
             {rules.map((rule) => (
-              <article key={rule.id} className="studio-tile p-4">
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                  <div>
-                    <h4 className="font-semibold text-ink">{rule.category}</h4>
-                    <p className="mt-1 text-xs text-muted">处理策略：{rule.action}</p>
-                  </div>
-                  <StatusBadge tone={ruleTone(rule.riskLevel)}>{rule.riskLevel}</StatusBadge>
-                </div>
-                <p className="mt-3 text-sm leading-6 text-muted">{rule.description}</p>
-                <p className="mt-3 rounded-md border border-line bg-panel-muted px-3 py-2 text-xs text-muted">
-                  识别模式：{rule.pattern}
-                </p>
-              </article>
+              <AuditRuleCard
+                key={rule.id}
+                canManageRules={canManageRules}
+                rule={{
+                  id: rule.id,
+                  category: rule.category,
+                  description: rule.description,
+                  riskLevel: rule.riskLevel,
+                  pattern: rule.pattern,
+                  action: rule.action
+                }}
+              />
             ))}
           </div>
         </section>
 
         <section className="studio-panel p-6">
           <h3 className="text-xl font-semibold text-ink">质量评分维度</h3>
-          <div className="mt-5 space-y-3">
+          <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
             {qualityDimensions.map((dimension) => (
               <article key={dimension.name} className="studio-tile p-4">
                 <h4 className="font-semibold text-ink">{dimension.name}</h4>

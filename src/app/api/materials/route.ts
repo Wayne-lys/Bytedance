@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { createMaterial, listMaterials } from "@/features/materials/material-service";
+import { requirePermission } from "@/lib/authorization";
 import { prisma } from "@/lib/db";
 import { jsonError, jsonOk } from "@/lib/http";
 
@@ -10,13 +11,9 @@ const materialSchema = z.object({
   url: z.string().optional()
 });
 
-async function getDemoOwnerId() {
-  const user = await prisma.user.findFirst({
-    orderBy: { createdAt: "asc" }
-  });
-
-  return user?.id;
-}
+const bulkDeleteSchema = z.object({
+  ids: z.array(z.string().min(1, "素材 ID 无效")).min(1, "请选择要删除的素材")
+});
 
 export async function GET() {
   const materials = await listMaterials();
@@ -25,22 +22,54 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  const authorization = await requirePermission("manage_materials");
+
+  if (!authorization.ok) {
+    return authorization.response;
+  }
+
   const input = materialSchema.safeParse(await request.json());
 
   if (!input.success) {
     return jsonError(input.error.issues[0]?.message ?? "素材信息无效", 422);
   }
 
-  const ownerId = await getDemoOwnerId();
-
-  if (!ownerId) {
-    return jsonError("缺少演示用户，请先运行 seed。", 500);
-  }
-
   const material = await createMaterial({
-    ownerId,
+    ownerId: authorization.user.id,
     ...input.data
   });
 
   return jsonOk({ material });
+}
+
+export async function DELETE(request: Request) {
+  const authorization = await requirePermission("manage_materials");
+
+  if (!authorization.ok) {
+    return authorization.response;
+  }
+
+  const input = bulkDeleteSchema.safeParse(await request.json());
+
+  if (!input.success) {
+    return jsonError(input.error.issues[0]?.message ?? "素材参数无效", 422);
+  }
+
+  const ids = Array.from(new Set(input.data.ids));
+  const existing = await listMaterials();
+  const existingIds = new Set(existing.map((material) => material.id));
+  const deletableIds = ids.filter((id) => existingIds.has(id));
+
+  if (deletableIds.length === 0) {
+    return jsonError("素材不存在或已删除。", 404);
+  }
+
+  const result = await prisma.material.deleteMany({
+    where: { id: { in: deletableIds } }
+  });
+
+  return jsonOk({
+    deletedIds: deletableIds,
+    deletedCount: result.count
+  });
 }

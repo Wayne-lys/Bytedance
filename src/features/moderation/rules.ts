@@ -8,7 +8,12 @@ type Rule = {
 const rules: Rule[] = [
   { category: "涉黄", riskLevel: "high", pattern: /色情|裸聊|约炮/, action: "block" },
   { category: "涉赌", riskLevel: "high", pattern: /赌博|博彩|下注|稳赚/, action: "block" },
-  { category: "涉毒", riskLevel: "high", pattern: /毒品|冰毒|大麻|违禁药/, action: "block" },
+  {
+    category: "涉毒",
+    riskLevel: "high",
+    pattern: /毒品|冰毒|大麻|违禁药|海洛因|摇头丸|K粉|麻古|吸\s*毒|吸食毒品|嗑\s*药|贩\s*毒|制\s*毒|买\s*毒|卖\s*毒/i,
+    action: "block"
+  },
   {
     category: "敏感信息",
     riskLevel: "medium",

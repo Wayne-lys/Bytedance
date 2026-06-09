@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { reviewAndScoreContent } from "@/features/moderation/moderation-service";
+import { requirePermission } from "@/lib/authorization";
 import { jsonError, jsonOk } from "@/lib/http";
 
 const reviewSchema = z.object({
@@ -10,11 +11,17 @@ const reviewSchema = z.object({
 });
 
 export async function POST(request: Request) {
+  const authorization = await requirePermission("review_content");
+
+  if (!authorization.ok) {
+    return authorization.response;
+  }
+
   const input = reviewSchema.safeParse(await request.json());
 
   if (!input.success) {
     return jsonError(input.error.issues[0]?.message ?? "审核参数无效", 422);
   }
 
-  return jsonOk(reviewAndScoreContent(input.data));
+  return jsonOk(await reviewAndScoreContent(input.data));
 }

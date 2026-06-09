@@ -2,6 +2,7 @@ import { z } from "zod";
 import {
   listPosts,
   PublishBlockedError,
+  PublishReviewRequiredError,
   publishBlockPayload,
   publishPost
 } from "@/features/posts/post-service";
@@ -13,7 +14,9 @@ const postSchema = z.object({
   body: z.string().min(1, "请输入正文"),
   tags: z.union([z.array(z.string()), z.string()]).default([]),
   coverUrl: z.string().nullable().optional(),
-  platform: z.string().default("头条")
+  materialIds: z.array(z.string()).default([]),
+  platform: z.string().default("头条"),
+  reviewToken: z.string().optional()
 });
 
 export async function GET(request: Request) {
@@ -45,6 +48,10 @@ export async function POST(request: Request) {
         },
         { status: 409 }
       );
+    }
+
+    if (error instanceof PublishReviewRequiredError) {
+      return jsonError(error.message, 428);
     }
 
     return jsonError(error instanceof Error ? error.message : "发布失败", 500);

@@ -1,7 +1,16 @@
 import { z } from "zod";
-import { createSession, verifyPassword } from "@/lib/auth";
+import {
+  createSession,
+  hashVerificationCode,
+  verifyPassword
+} from "@/lib/auth";
+import { serializeUserPermissions } from "@/lib/authorization";
 import { prisma } from "@/lib/db";
 import { jsonError, jsonOk } from "@/lib/http";
+import {
+  checkSmsVerificationCode,
+  isVolcSmsConfigured
+} from "@/features/verification/providers";
 
 const emailLoginSchema = z.object({
   type: z.literal("email"),
@@ -52,22 +61,44 @@ export async function POST(request: Request) {
         id: user.id,
         email: user.email,
         phone: user.phone,
-        name: user.name
+        name: user.name,
+        ...(await serializeUserPermissions(user))
       }
     });
   }
 
-  const phoneCode = await prisma.phoneCode.findFirst({
-    where: {
-      phone: input.data.phone,
-      code: input.data.code,
-      consumed: false,
-      expiresAt: { gt: new Date() }
-    },
-    orderBy: { createdAt: "desc" }
-  });
+  let phoneCodeId: string | null = null;
+  let phoneVerified = false;
 
-  if (!phoneCode) {
+  if (isVolcSmsConfigured()) {
+    try {
+      phoneVerified = await checkSmsVerificationCode({
+        phone: input.data.phone,
+        code: input.data.code
+      });
+    } catch {
+      return jsonError("短信验证码校验失败，请稍后重试。", 502);
+    }
+  } else {
+    const phoneCode = await prisma.phoneCode.findFirst({
+      where: {
+        phone: input.data.phone,
+        code: hashVerificationCode({
+          channel: "phone",
+          target: input.data.phone,
+          code: input.data.code
+        }),
+        consumed: false,
+        expiresAt: { gt: new Date() }
+      },
+      orderBy: { createdAt: "desc" }
+    });
+
+    phoneVerified = Boolean(phoneCode);
+    phoneCodeId = phoneCode?.id ?? null;
+  }
+
+  if (!phoneVerified) {
     return jsonError("验证码错误或已过期", 401);
   }
 
@@ -80,10 +111,12 @@ export async function POST(request: Request) {
     }
   });
 
-  await prisma.phoneCode.update({
-    where: { id: phoneCode.id },
-    data: { consumed: true, userId: user.id }
-  });
+  if (phoneCodeId) {
+    await prisma.phoneCode.update({
+      where: { id: phoneCodeId },
+      data: { consumed: true, userId: user.id }
+    });
+  }
 
   await createSession(user.id);
 
@@ -92,7 +125,8 @@ export async function POST(request: Request) {
       id: user.id,
       email: user.email,
       phone: user.phone,
-      name: user.name
+      name: user.name,
+      ...(await serializeUserPermissions(user))
     }
   });
 }

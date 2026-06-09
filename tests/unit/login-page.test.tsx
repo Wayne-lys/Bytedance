@@ -25,6 +25,36 @@ describe("login page", () => {
   });
 
   it("lets a new creator register from the access page", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi
+        .fn()
+        .mockResolvedValueOnce(
+          new Response(
+            JSON.stringify({
+              ok: true,
+              data: { email: "new@example.com", debugCode: "246810" }
+            }),
+            { status: 200 }
+          )
+        )
+        .mockResolvedValueOnce(
+          new Response(
+            JSON.stringify({
+              ok: true,
+              data: {
+                user: {
+                  id: "user_1",
+                  email: "new@example.com",
+                  name: "新创作者"
+                }
+              }
+            }),
+            { status: 200 }
+          )
+        )
+    );
+
     render(<LoginPage />);
 
     fireEvent.click(screen.getByRole("button", { name: "注册账号" }));
@@ -37,6 +67,9 @@ describe("login page", () => {
     fireEvent.change(screen.getByLabelText("密码"), {
       target: { value: "NewPass123" }
     });
+    fireEvent.click(screen.getByRole("button", { name: "获取验证码" }));
+
+    expect(await screen.findByText(/演示邮箱验证码：246810/)).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "创建账号" }));
 
     await waitFor(() => {
@@ -47,7 +80,8 @@ describe("login page", () => {
           body: JSON.stringify({
             name: "新创作者",
             email: "new@example.com",
-            password: "NewPass123"
+            password: "NewPass123",
+            code: "246810"
           })
         })
       );
@@ -63,7 +97,7 @@ describe("login page", () => {
           new Response(
             JSON.stringify({
               ok: true,
-              data: { phone: "13900000000", code: "246810" }
+              data: { phone: "13900000000", debugCode: "246810" }
             }),
             { status: 200 }
           )

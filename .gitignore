@@ -11,4 +11,8 @@ test-results/
 *.db
 *.db-journal
 public/uploads/
+run-logs/
+debug.log
+tsconfig.tsbuildinfo
+.continue-here.md
 

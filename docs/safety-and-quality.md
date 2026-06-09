@@ -48,7 +48,7 @@ The total score is used by the review UI and ranking formula.
 
 ## Rewrite Loop
 
-`/api/moderation/rewrite` replaces risky phrases with compliant alternatives. The evaluation dashboard shows before/after examples so reviewers can inspect whether the rewrite keeps the content useful while reducing risk.
+`/api/moderation/rewrite` replaces risky phrases with compliant alternatives. The evaluation report data keeps before/after examples so reviewers can inspect whether the rewrite keeps the content useful while reducing risk.
 
 ## Distribution Governance
 

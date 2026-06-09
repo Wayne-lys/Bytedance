@@ -1,5 +1,9 @@
 import { Prisma } from "@prisma/client";
-import { reviewAndScoreContent } from "@/features/moderation/moderation-service";
+import {
+  reviewAndScoreContent,
+  verifyReviewToken
+} from "@/features/moderation/moderation-service";
+import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 
 export type PostInput = {
@@ -9,15 +13,26 @@ export type PostInput = {
   coverUrl?: string | null;
   platform?: string;
   draftId?: string;
+  materialIds?: string[];
+  reviewToken?: string;
 };
+
+type ContentReview = Awaited<ReturnType<typeof reviewAndScoreContent>>;
 
 export class PublishBlockedError extends Error {
   constructor(
     message: string,
-    public readonly review: ReturnType<typeof reviewAndScoreContent>
+    public readonly review: ContentReview
   ) {
     super(message);
     this.name = "PublishBlockedError";
+  }
+}
+
+export class PublishReviewRequiredError extends Error {
+  constructor(message = "请先审核内容，通过后再发布。") {
+    super(message);
+    this.name = "PublishReviewRequiredError";
   }
 }
 
@@ -36,13 +51,34 @@ function storedTags(tags: string[] | string | null | undefined) {
   return parseTags(tags).join(",");
 }
 
-function assertPublishAllowed(review: ReturnType<typeof reviewAndScoreContent>) {
+function assertPublishAllowed(review: ContentReview) {
   if (review.moderation.riskLevel === "high") {
     throw new PublishBlockedError("高危内容已被拦截，无法发布。", review);
   }
 
   if (review.moderation.riskLevel === "medium") {
     throw new PublishBlockedError("内容需要改写或人工复核后才能发布。", review);
+  }
+}
+
+function reviewInputFromPost(input: PostInput) {
+  return {
+    title: input.title,
+    body: input.body,
+    tags: parseTags(input.tags),
+    platform: input.platform ?? "头条"
+  };
+}
+
+function assertReviewedBeforePublish(input: PostInput, review: ContentReview) {
+  if (
+    !verifyReviewToken(
+      reviewInputFromPost(input),
+      review.moderation.riskLevel,
+      input.reviewToken
+    )
+  ) {
+    throw new PublishReviewRequiredError();
   }
 }
 
@@ -56,10 +92,38 @@ const postInclude = {
   },
   moderationResult: true,
   qualityScore: true,
-  rankingMetric: true
+  rankingMetric: true,
+  materials: {
+    orderBy: { position: "asc" },
+    include: {
+      material: {
+        select: {
+          id: true,
+          name: true,
+          type: true,
+          url: true,
+          compliance: true,
+          riskReason: true,
+          referenceCount: true
+        }
+      }
+    }
+  }
 } satisfies Prisma.PostInclude;
 
 export async function getPublishingAuthor() {
+  let currentUser: Awaited<ReturnType<typeof getCurrentUser>> = null;
+
+  try {
+    currentUser = await getCurrentUser();
+  } catch {
+    currentUser = null;
+  }
+
+  if (currentUser) {
+    return currentUser;
+  }
+
   const creator = await prisma.user.findUnique({
     where: { email: "creator@example.com" }
   });
@@ -94,22 +158,18 @@ async function inputFromDraft(authorId: string, input: PostInput) {
     body: input.body || draft.body,
     tags: input.tags || draft.tags,
     coverUrl: input.coverUrl ?? draft.coverUrl,
-    platform: input.platform ?? draft.platform ?? "头条"
+    platform: input.platform ?? draft.platform ?? "头条",
+    draftId: input.draftId,
+    materialIds: input.materialIds ?? [],
+    reviewToken: input.reviewToken
   };
 }
 
-function createReview(input: PostInput) {
-  const tags = parseTags(input.tags);
-
-  return reviewAndScoreContent({
-    title: input.title,
-    body: input.body,
-    tags,
-    platform: input.platform ?? "头条"
-  });
+async function createReview(input: PostInput) {
+  return reviewAndScoreContent(reviewInputFromPost(input));
 }
 
-async function writeReview(postId: string, review: ReturnType<typeof reviewAndScoreContent>) {
+async function writeReview(postId: string, review: ContentReview) {
   await prisma.moderationResult.upsert({
     where: { postId },
     update: {
@@ -118,7 +178,7 @@ async function writeReview(postId: string, review: ReturnType<typeof reviewAndSc
       matchedRules: JSON.stringify(review.moderation.matchedRules),
       reason: review.moderation.reason,
       suggestedAction: review.moderation.suggestedAction,
-      provider: "local-rules"
+      provider: review.moderation.provider ?? "local-rules"
     },
     create: {
       postId,
@@ -127,7 +187,7 @@ async function writeReview(postId: string, review: ReturnType<typeof reviewAndSc
       matchedRules: JSON.stringify(review.moderation.matchedRules),
       reason: review.moderation.reason,
       suggestedAction: review.moderation.suggestedAction,
-      provider: "local-rules"
+      provider: review.moderation.provider ?? "local-rules"
     }
   });
 
@@ -147,6 +207,10 @@ export function serializePost<
   return {
     ...post,
     tags: parseTags(post.tags),
+    materials: post.materials.map((item) => ({
+      ...item.material,
+      position: item.position
+    })),
     qualitySummary: post.qualityScore
       ? {
           originality: post.qualityScore.originality,
@@ -169,9 +233,11 @@ export async function publishPost(input: PostInput) {
   }
 
   const resolvedInput = await inputFromDraft(author.id, input);
-  const review = createReview(resolvedInput);
+  const review = await createReview(resolvedInput);
 
+  assertReviewedBeforePublish(resolvedInput, review);
   assertPublishAllowed(review);
+  const materialIds = Array.from(new Set(resolvedInput.materialIds ?? []));
 
   const post = await prisma.$transaction(async (tx) => {
     const created = await tx.post.create({
@@ -194,7 +260,7 @@ export async function publishPost(input: PostInput) {
         matchedRules: JSON.stringify(review.moderation.matchedRules),
         reason: review.moderation.reason,
         suggestedAction: review.moderation.suggestedAction,
-        provider: "local-rules"
+        provider: review.moderation.provider ?? "local-rules"
       }
     });
 
@@ -204,6 +270,49 @@ export async function publishPost(input: PostInput) {
         ...review.quality
       }
     });
+
+    if (resolvedInput.draftId) {
+      await tx.draft.updateMany({
+        where: {
+          id: resolvedInput.draftId,
+          authorId: author.id
+        },
+        data: {
+          status: "published",
+          localState: "published"
+        }
+      });
+    }
+
+    if (materialIds.length > 0) {
+      const allowedMaterials = await tx.material.findMany({
+        where: {
+          id: { in: materialIds },
+          compliance: { not: "blocked" }
+        },
+        select: { id: true }
+      });
+      const allowedMaterialIds = new Set(allowedMaterials.map((material) => material.id));
+      const linkedMaterialIds = materialIds.filter((id) => allowedMaterialIds.has(id));
+
+      if (linkedMaterialIds.length > 0) {
+        await tx.material.updateMany({
+          where: {
+            id: { in: linkedMaterialIds }
+          },
+          data: {
+            referenceCount: { increment: 1 }
+          }
+        });
+        await tx.postMaterial.createMany({
+          data: linkedMaterialIds.map((materialId, position) => ({
+            postId: created.id,
+            materialId,
+            position
+          }))
+        });
+      }
+    }
 
     return tx.post.findUniqueOrThrow({
       where: { id: created.id },
@@ -224,13 +333,38 @@ export async function listPosts(status?: string | null) {
   return posts.map(serializePost);
 }
 
-export async function getPostDetail(id: string) {
+export async function getPostDetail(
+  id: string,
+  options: { incrementView?: boolean } = {}
+) {
   const post = await prisma.post.findUnique({
     where: { id },
     include: postInclude
   });
 
-  return post ? serializePost(post) : null;
+  if (!post) {
+    return null;
+  }
+
+  if (!options.incrementView) {
+    return serializePost(post);
+  }
+
+  const rankingMetric = await prisma.rankingMetric.upsert({
+    where: { postId: id },
+    update: {
+      views: { increment: 1 }
+    },
+    create: {
+      postId: id,
+      views: 1
+    }
+  });
+
+  return serializePost({
+    ...post,
+    rankingMetric
+  });
 }
 
 export async function updatePost(id: string, input: PostInput) {
@@ -242,11 +376,10 @@ export async function updatePost(id: string, input: PostInput) {
     return null;
   }
 
-  const review = createReview(input);
-  const nextStatus =
-    review.moderation.riskLevel === "high" || review.moderation.riskLevel === "medium"
-      ? "rejected"
-      : "published";
+  const review = await createReview(input);
+
+  assertReviewedBeforePublish(input, review);
+  assertPublishAllowed(review);
 
   const post = await prisma.post.update({
     where: { id },
@@ -255,9 +388,8 @@ export async function updatePost(id: string, input: PostInput) {
       body: input.body,
       tags: storedTags(input.tags),
       coverUrl: input.coverUrl ?? existing.coverUrl,
-      status: nextStatus,
-      publishedAt:
-        nextStatus === "published" ? (existing.publishedAt ?? new Date()) : existing.publishedAt
+      status: "published",
+      publishedAt: existing.publishedAt ?? new Date()
     },
     include: postInclude
   });

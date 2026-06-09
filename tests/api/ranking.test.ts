@@ -1,15 +1,14 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { prisma } from "@/lib/db";
 
-async function seedRankingPosts() {
-  const author = await prisma.user.upsert({
-    where: { email: "ranking-owner@example.com" },
-    update: { name: "榜单测试用户" },
-    create: {
-      email: "ranking-owner@example.com",
-      name: "榜单测试用户"
-    }
+async function cleanupRankingPosts() {
+  const author = await prisma.user.findUnique({
+    where: { email: "ranking-owner@example.com" }
   });
+
+  if (!author) {
+    return;
+  }
 
   await prisma.rankingMetric.deleteMany({
     where: { post: { authorId: author.id } }
@@ -23,11 +22,24 @@ async function seedRankingPosts() {
   await prisma.post.deleteMany({
     where: { authorId: author.id }
   });
+}
+
+async function seedRankingPosts() {
+  const author = await prisma.user.upsert({
+    where: { email: "ranking-owner@example.com" },
+    update: { name: "榜单测试用户" },
+    create: {
+      email: "ranking-owner@example.com",
+      name: "榜单测试用户"
+    }
+  });
+
+  await cleanupRankingPosts();
 
   const posts = await Promise.all(
     [
-      { title: "高热度咖啡清单", quality: 88, views: 2000, likes: 220, saves: 80, feedback: 92 },
-      { title: "稳定通勤整理术", quality: 82, views: 1200, likes: 140, saves: 56, feedback: 80 },
+      { title: "高质量低阅读清单", quality: 95, views: 10, likes: 220, saves: 80, feedback: 92 },
+      { title: "高阅读咖啡清单", quality: 60, views: 5000, likes: 140, saves: 56, feedback: 80 },
       { title: "低风险周末菜单", quality: 78, views: 900, likes: 96, saves: 42, feedback: 74 }
     ].map((item, index) =>
       prisma.post.create({
@@ -84,6 +96,10 @@ describe("ranking api", () => {
     await seedRankingPosts();
   });
 
+  afterEach(async () => {
+    await cleanupRankingPosts();
+  });
+
   it("returns cursor-paginated ranking items with score explanation", async () => {
     const { GET } = await import("@/app/api/ranking/route");
 
@@ -95,8 +111,9 @@ describe("ranking api", () => {
     expect(firstResponse.status).toBe(200);
     expect(firstPayload.data.items).toHaveLength(2);
     expect(firstPayload.data.nextCursor).toBeTruthy();
-    expect(firstPayload.data.items[0].rankingScore).toBeGreaterThanOrEqual(
-      firstPayload.data.items[1].rankingScore
+    expect(firstPayload.data.items[0].title).toBe("高阅读咖啡清单");
+    expect(firstPayload.data.items[0].views).toBeGreaterThanOrEqual(
+      firstPayload.data.items[1].views
     );
     expect(firstPayload.data.items[0].explanation.qualityContribution).toBeGreaterThan(0);
 
@@ -110,5 +127,26 @@ describe("ranking api", () => {
     expect(secondResponse.status).toBe(200);
     expect(secondPayload.data.items.length).toBeGreaterThan(0);
     expect(secondPayload.data.items[0].postId).not.toBe(firstPayload.data.items[0].postId);
+  });
+
+  it("returns latest published posts by publish time instead of ranking score", async () => {
+    const { GET } = await import("@/app/api/ranking/route");
+    const latestPost = await prisma.post.findFirstOrThrow({
+      where: { title: "低风险周末菜单" }
+    });
+
+    await prisma.post.update({
+      where: { id: latestPost.id },
+      data: { publishedAt: new Date("2099-06-01T08:00:00.000Z") }
+    });
+
+    const response = await GET(
+      new Request("http://localhost/api/ranking?type=latest&limit=3")
+    );
+    const payload = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(payload.data.type).toBe("latest");
+    expect(payload.data.items[0].title).toBe("低风险周末菜单");
   });
 });

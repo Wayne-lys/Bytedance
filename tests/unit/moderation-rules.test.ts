@@ -10,6 +10,14 @@ describe("moderation rules", () => {
     expect(result.suggestedAction).toBe("block");
   });
 
+  it("blocks illegal drug use intent", () => {
+    const result = reviewContentWithRules("标题：我要吸毒\n正文：我要吸毒");
+
+    expect(result.riskLevel).toBe("high");
+    expect(result.riskTypes).toContain("涉毒");
+    expect(result.suggestedAction).toBe("block");
+  });
+
   it("flags privacy leakage for review", () => {
     const result = reviewContentWithRules("这里贴出用户手机号和详细住址方便联系。");
 

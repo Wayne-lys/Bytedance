@@ -1,17 +1,10 @@
-import { z } from "zod";
 import {
   createPromptTemplate,
   listPromptTemplates
 } from "@/features/prompts/prompt-service";
+import { promptTemplateSchema } from "@/features/prompts/prompt-schema";
 import { prisma } from "@/lib/db";
 import { jsonError, jsonOk } from "@/lib/http";
-
-const promptSchema = z.object({
-  name: z.string().min(1, "请输入模板名称"),
-  scenario: z.string().min(1, "请输入场景"),
-  content: z.string().min(8, "Prompt 内容过短"),
-  variables: z.string().min(1, "请输入变量")
-});
 
 async function getDemoOwnerId() {
   const user = await prisma.user.findFirst({
@@ -21,14 +14,15 @@ async function getDemoOwnerId() {
   return user?.id;
 }
 
-export async function GET() {
-  const prompts = await listPromptTemplates();
+export async function GET(request: Request) {
+  const query = new URL(request.url).searchParams.get("q") ?? "";
+  const prompts = await listPromptTemplates({ query });
 
   return jsonOk({ prompts });
 }
 
 export async function POST(request: Request) {
-  const input = promptSchema.safeParse(await request.json());
+  const input = promptTemplateSchema.safeParse(await request.json());
 
   if (!input.success) {
     return jsonError(input.error.issues[0]?.message ?? "Prompt 模板无效", 422);

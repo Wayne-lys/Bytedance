@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/db";
 
-export type RankingType = "hot" | "viral" | "recommended";
+export type RankingType = "hot" | "latest" | "recommended";
 
 export type RankingScoreInput = {
   qualityScore: number;
@@ -99,10 +99,10 @@ function deriveRiskPenalty(riskLevel: string | undefined, storedPenalty: number)
 
 export function calculateRankingScore(input: RankingScoreInput) {
   const explanation = {
-    qualityContribution: roundScore(input.qualityScore * 0.45),
-    heatContribution: roundScore(input.heatScore * 0.3),
-    freshnessContribution: roundScore(input.freshnessScore * 0.15),
-    feedbackContribution: roundScore(input.feedbackScore * 0.1),
+    qualityContribution: roundScore(input.qualityScore * 0.75),
+    heatContribution: 0,
+    freshnessContribution: roundScore(input.freshnessScore * 0.25),
+    feedbackContribution: 0,
     riskPenalty: roundScore(input.riskPenalty)
   };
 
@@ -140,6 +140,43 @@ export function rankItems(items: RankingSourceItem[]) {
 
       return left.postId.localeCompare(right.postId);
     });
+}
+
+export function rankHotItems(items: RankingSourceItem[]) {
+  return rankItems(items).sort((left, right) => {
+    const rightViews = right.views ?? 0;
+    const leftViews = left.views ?? 0;
+
+    if (rightViews !== leftViews) {
+      return rightViews - leftViews;
+    }
+
+    if (right.rankingScore !== left.rankingScore) {
+      return right.rankingScore - left.rankingScore;
+    }
+
+    const rightTime = right.publishedAt ? new Date(right.publishedAt).getTime() : 0;
+    const leftTime = left.publishedAt ? new Date(left.publishedAt).getTime() : 0;
+
+    if (rightTime !== leftTime) {
+      return rightTime - leftTime;
+    }
+
+    return left.postId.localeCompare(right.postId);
+  });
+}
+
+export function rankLatestItems(items: RankingSourceItem[]) {
+  return rankItems(items).sort((left, right) => {
+    const rightTime = right.publishedAt ? new Date(right.publishedAt).getTime() : 0;
+    const leftTime = left.publishedAt ? new Date(left.publishedAt).getTime() : 0;
+
+    if (rightTime !== leftTime) {
+      return rightTime - leftTime;
+    }
+
+    return left.postId.localeCompare(right.postId);
+  });
 }
 
 export function paginateRankings(
@@ -230,7 +267,12 @@ export async function getRankingItems({
     };
   });
 
-  const ranked = rankItems(sources);
+  const ranked =
+    type === "hot"
+      ? rankHotItems(sources)
+      : type === "latest"
+        ? rankLatestItems(sources)
+        : rankItems(sources);
 
   return {
     type,
