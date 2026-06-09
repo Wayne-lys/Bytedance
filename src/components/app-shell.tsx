@@ -34,9 +34,9 @@ type SessionUser = {
 
 export function AppShell({
   children,
-  eyebrow = "AI Creator Platform",
-  title = "AI 创作者辅助生产与分发平台",
-  description = "围绕创作、审核、发布和榜单的一条完整演示闭环。"
+  eyebrow = "AI 内容工作台",
+  title = "AI 创作者工作台",
+  description = "围绕创作、审核、发布和榜单的完整演示闭环。"
 }: {
   children: React.ReactNode;
   eyebrow?: string;
@@ -98,19 +98,19 @@ export function AppShell({
       <div className="grid w-full gap-2 lg:grid-cols-[244px_minmax(0,1fr)]">
         <aside className="overflow-hidden rounded-lg bg-sidebar text-[#f6efe4] shadow-soft lg:sticky lg:top-2 lg:h-[calc(100vh-1rem)]">
           <div className="flex h-full flex-col">
-            <Link href="/" className="border-b border-white/10 p-4">
+            <Link href="/" className="border-b border-white/10 p-3 sm:p-4">
               <div className="flex items-center gap-3">
-                <span className="flex size-10 items-center justify-center rounded-md bg-accent text-base font-semibold text-white shadow-crisp">
+                <span className="flex size-9 items-center justify-center rounded-md bg-accent text-base font-semibold text-white shadow-crisp sm:size-10">
                   AI
                 </span>
                 <div>
                   <p className="text-sm font-semibold leading-5">Toutiao Studio</p>
-                  <p className="mt-1 text-xs text-[#cbbfb1]">Content Management Platform</p>
+                  <p className="mt-1 text-xs text-[#cbbfb1]">内容生产与治理平台</p>
                 </div>
               </div>
             </Link>
 
-            <nav className="flex gap-2 overflow-x-auto border-b border-white/10 p-3 lg:flex-1 lg:flex-col lg:overflow-visible lg:border-b-0" aria-label="工作区导航">
+            <nav className="flex gap-2 overflow-x-auto border-b border-white/10 p-2 sm:p-3 lg:flex-1 lg:flex-col lg:overflow-visible lg:border-b-0" aria-label="工作区导航">
               {visibleNavItems.map((item, visibleIndex) => {
                 const active = pathname === item.href;
                 const displayIndex = visibleIndex.toString().padStart(2, "0");
@@ -119,7 +119,7 @@ export function AppShell({
                   <Link
                     key={item.href}
                     href={item.href}
-                    className={`group flex min-w-32 shrink-0 items-center gap-3 rounded-md border px-3 py-2.5 text-sm transition lg:min-w-0 ${
+                    className={`group flex min-w-28 shrink-0 items-center gap-3 rounded-md border px-3 py-2 text-sm transition lg:min-w-0 lg:py-2.5 ${
                       active
                         ? "border-accent bg-accent text-white shadow-crisp"
                         : "border-white/10 bg-white/[0.035] text-[#d9cec2] hover:border-white/25 hover:bg-white/[0.08] hover:text-white"
@@ -150,7 +150,7 @@ export function AppShell({
         </aside>
 
         <section className="min-w-0 rounded-lg border border-line bg-paper/80 shadow-soft lg:flex lg:h-[calc(100vh-1rem)] lg:flex-col lg:overflow-hidden">
-          <header className="shrink-0 border-b border-line bg-panel/78 px-4 py-4 backdrop-blur md:px-5">
+          <header className="shrink-0 border-b border-line bg-panel/78 px-4 py-3 backdrop-blur md:px-5 md:py-4">
             <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
               <div className="max-w-4xl">
                 <p className="text-xs font-semibold text-accent">{eyebrow}</p>

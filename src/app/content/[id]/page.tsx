@@ -360,10 +360,10 @@ function RankingDetailView({
           description: null
         }
       : {
-          label: "分发分",
+          label: "推荐分",
           value: String(rankingScore),
           suffix: "/ 100",
-          description: "综合内容质量、发布时效、审核安全和平台适配，用于推荐流排序参考。"
+          description: "综合内容质量、发布时效、审核安全和平台适配。"
         };
 
   return (

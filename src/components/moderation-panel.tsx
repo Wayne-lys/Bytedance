@@ -12,7 +12,7 @@ export function ModerationPanel({ result }: { result: ModerationSummary }) {
     <div className="studio-tile p-4">
       <div className="flex items-center justify-between gap-3">
         <div>
-          <p className="text-xs font-semibold text-accent">Safety Gate</p>
+          <p className="text-xs font-semibold text-accent">安全闸门</p>
           <h3 className="mt-1 font-semibold text-ink">安全审核</h3>
         </div>
         <StatusBadge

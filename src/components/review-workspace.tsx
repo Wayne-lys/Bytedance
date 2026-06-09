@@ -55,7 +55,7 @@ export function ReviewWorkspace({
         className="studio-panel flex min-h-0 flex-col overflow-hidden p-6"
         data-testid="review-detail-panel"
       >
-        <p className="text-xs font-semibold text-accent">Review Desk</p>
+        <p className="text-xs font-semibold text-accent">审核台</p>
         <h2 className="mt-2 text-3xl font-semibold text-ink">审核与质量</h2>
         <p className="mt-2 text-sm leading-6 text-muted">
           这里会展示风险等级、命中规则、质量分和合规改写前后对比。
@@ -68,7 +68,7 @@ export function ReviewWorkspace({
 
         <div className="mt-5 grid min-h-0 gap-4 overflow-y-auto pr-1">
           <div className="studio-tile p-4">
-            <p className="text-xs font-semibold text-accent">Selected Record</p>
+            <p className="text-xs font-semibold text-accent">当前记录</p>
             <div className="mt-2 flex items-start justify-between gap-3">
               <div className="min-w-0">
                 <h3 className="text-lg font-semibold leading-6 text-ink">

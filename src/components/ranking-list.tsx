@@ -7,7 +7,7 @@ import type { RankedItem, RankingType } from "@/features/ranking/ranking-service
 const typeLabel: Record<RankingType, string> = {
   hot: "热点榜",
   latest: "新发布",
-  recommended: "推荐流"
+  recommended: "推荐"
 };
 
 function formatNumber(value: number | undefined) {
@@ -120,11 +120,9 @@ export function RankingList({
                 <p className="mt-2 text-4xl font-semibold leading-none text-ink">
                   {formatNumber(item.views)}
                 </p>
-                <div className="mt-4 grid grid-cols-2 gap-2 text-xs text-muted">
-                  <span>质量 {item.qualityScore}</span>
-                  <span>时效 {item.explanation.freshnessContribution}</span>
-                  <span>风险 -{item.explanation.riskPenalty}</span>
-                  <span>分发 {item.rankingScore}</span>
+                <div className="mt-4 space-y-1 text-xs text-muted">
+                  <p>发布时间 {formatPublishedAt(item.publishedAt)}</p>
+                  <p>质量分 {item.qualityScore}</p>
                 </div>
               </>
             ) : isLatest ? (
@@ -132,11 +130,9 @@ export function RankingList({
                 <p className="mt-2 text-2xl font-semibold leading-tight text-ink">
                   {formatPublishedAt(item.publishedAt)}
                 </p>
-                <div className="mt-4 grid grid-cols-2 gap-2 text-xs text-muted">
-                  <span>质量 {item.qualityScore}</span>
-                  <span>阅读 {formatNumber(item.views)}</span>
-                  <span>时效 {item.explanation.freshnessContribution}</span>
-                  <span>风险 -{item.explanation.riskPenalty}</span>
+                <div className="mt-4 space-y-1 text-xs text-muted">
+                  <p>阅读 {formatNumber(item.views)}</p>
+                  <p>质量分 {item.qualityScore}</p>
                 </div>
               </>
             ) : (
@@ -144,11 +140,9 @@ export function RankingList({
                 <p className="mt-2 text-4xl font-semibold leading-none text-ink">
                   {item.rankingScore}
                 </p>
-                <div className="mt-4 grid grid-cols-2 gap-2 text-xs text-muted">
-                  <span>质量 {item.explanation.qualityContribution}</span>
-                  <span>时效 {item.explanation.freshnessContribution}</span>
-                  <span>风险 -{item.explanation.riskPenalty}</span>
-                  <span>总分 {item.rankingScore}</span>
+                <div className="mt-4 space-y-1 text-xs text-muted">
+                  <p>质量贡献 {item.explanation.qualityContribution}</p>
+                  <p>风险扣分 -{item.explanation.riskPenalty}</p>
                 </div>
               </>
             )}

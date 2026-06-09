@@ -178,7 +178,7 @@ export default async function Home() {
                 </StatusBadge>
               </div>
               <p className="mt-10 text-xs font-semibold uppercase text-[#d9c7b4]">
-                System Overview
+                系统概览
               </p>
               <h2 className="mt-4 max-w-3xl text-4xl font-semibold leading-[1.02] text-[#fffaf0] sm:text-5xl 2xl:text-6xl">
                 {canReviewContent ? "AI 内容生产与审核工作台" : "AI 内容生产工作台"}
@@ -331,7 +331,7 @@ export default async function Home() {
           <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
             <div>
               <p className="text-xs font-semibold uppercase text-accent">
-                Workflow
+                流程
               </p>
               <h3 className="mt-1.5 text-2xl font-semibold leading-tight text-ink">
                 内容生产流程
@@ -371,7 +371,7 @@ export default async function Home() {
 
         <aside className="studio-panel p-4 md:p-5">
           <div>
-            <p className="text-xs font-semibold uppercase text-accent">System Scope</p>
+            <p className="text-xs font-semibold text-accent">能力范围</p>
             <h3 className="mt-1.5 text-2xl font-semibold leading-tight text-ink">系统概览</h3>
             <p className="mt-2 text-sm leading-6 text-muted">
               以正式工作台方式汇总当前系统能力，便于快速了解模块范围和治理能力。

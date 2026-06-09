@@ -21,7 +21,7 @@ export default async function RulesPage() {
   if (!currentUser || !canManageRules) {
     return (
       <section className="studio-panel p-6">
-        <p className="text-xs font-semibold text-accent">Policy System</p>
+        <p className="text-xs font-semibold text-accent">规则体系</p>
         <h2 className="mt-2 text-3xl font-semibold text-ink">规则体系</h2>
         <div className="mt-5 rounded-md border border-line bg-panel-muted px-4 py-3 text-sm leading-6 text-muted">
           当前账号没有规则管理权限。请使用管理员账号登录后再操作。
@@ -47,7 +47,7 @@ export default async function RulesPage() {
       <div className="studio-panel p-6">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <p className="text-xs font-semibold text-accent">Policy System</p>
+            <p className="text-xs font-semibold text-accent">规则体系</p>
             <h2 className="mt-2 text-3xl font-semibold text-ink">规则体系</h2>
             <p className="mt-2 max-w-3xl text-sm leading-6 text-muted">
               规则库明确高危拦截、人工复核、合规改写和低风险提示边界；质量评分维度用于创作反馈、审核报告和榜单排序。

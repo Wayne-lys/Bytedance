@@ -620,7 +620,7 @@ export function CreationStudio({
         <div className="border-b border-line bg-sidebar px-5 py-4 text-white md:px-6">
           <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <div>
-              <p className="text-xs font-semibold text-[#d7c9b6]">Creation Desk</p>
+              <p className="text-xs font-semibold text-[#d7c9b6]">创作台</p>
               <h2 className="mt-1 text-2xl font-semibold">
                 {editingPostId ? "编辑已发布内容" : "短图文创作台"}
               </h2>
@@ -691,7 +691,27 @@ export function CreationStudio({
             </label>
           </div>
 
-          <div className="flex flex-wrap gap-3 border-t border-line pt-5">
+        </div>
+
+        <div className="shrink-0 border-t border-line bg-panel/95 p-4 backdrop-blur md:px-6">
+          {publishState ? (
+            <div className="mb-3 flex flex-col gap-2 rounded-md border border-line bg-panel-muted px-3 py-2 sm:flex-row sm:items-center sm:justify-between">
+              <p className="text-sm font-semibold text-ink">{publishState}</p>
+              {detailHref ? (
+                <a className="text-sm font-semibold text-accent" href={detailHref}>
+                  查看详情
+                </a>
+              ) : null}
+            </div>
+          ) : null}
+
+          {!canReviewContent ? (
+            <p className="mb-3 rounded-md border border-line bg-panel-muted px-3 py-2 text-sm leading-6 text-muted">
+              发布前会自动审核；当前账号缺少审核员或管理员权限，无法发布内容。
+            </p>
+          ) : null}
+
+          <div className="flex flex-wrap gap-3">
             <button
               type="button"
               onClick={generateContent}
@@ -733,23 +753,6 @@ export function CreationStudio({
               )}
             </button>
           </div>
-
-          {!canReviewContent ? (
-            <p className="mt-3 rounded-md border border-line bg-panel-muted px-3 py-2 text-sm leading-6 text-muted">
-              发布前会自动审核；当前账号缺少审核员或管理员权限，无法发布内容。
-            </p>
-          ) : null}
-
-          {publishState ? (
-            <div className="studio-tile flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
-              <p className="text-sm font-semibold text-ink">{publishState}</p>
-              {detailHref ? (
-                <a className="text-sm font-semibold text-accent" href={detailHref}>
-                  查看详情
-                </a>
-              ) : null}
-            </div>
-          ) : null}
         </div>
       </div>
 
@@ -757,7 +760,7 @@ export function CreationStudio({
         <section className="studio-panel p-5">
           <div className="flex items-start justify-between gap-3">
             <div>
-              <p className="text-xs font-semibold text-accent">Material Context</p>
+              <p className="text-xs font-semibold text-accent">素材上下文</p>
               <h3 className="mt-1 text-xl font-semibold text-ink">生成素材</h3>
               <p className="mt-2 text-xs leading-5 text-muted">
                 选择素材后，AI 会把素材名称作为上下文；图片素材会作为发布封面。
@@ -864,7 +867,7 @@ export function CreationStudio({
         <section className="studio-panel p-5">
           <div className="flex items-center justify-between gap-3">
             <div>
-              <p className="text-xs font-semibold text-accent">Prompt Library</p>
+              <p className="text-xs font-semibold text-accent">Prompt 模板</p>
               <h3 className="mt-1 text-xl font-semibold text-ink">Prompt 模板</h3>
               <p className="mt-2 text-xs leading-5 text-muted">点击模板切换 AI 生成指令。</p>
             </div>
@@ -890,7 +893,7 @@ export function CreationStudio({
             <div className="studio-panel p-5">
               <div className="flex items-center justify-between gap-3">
                 <div>
-                  <p className="text-xs font-semibold text-accent">Safety Gate</p>
+                  <p className="text-xs font-semibold text-accent">安全审核</p>
                   <h3 className="mt-1 text-xl font-semibold text-ink">安全审核</h3>
                 </div>
                 <StatusBadge tone={review.moderation.riskLevel === "high" ? "blocked" : "safe"}>

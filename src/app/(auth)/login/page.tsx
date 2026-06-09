@@ -111,7 +111,7 @@ export default function LoginPage() {
       <section className="mx-auto grid min-h-[calc(100vh-3rem)] max-w-6xl overflow-hidden rounded-lg border border-line bg-panel shadow-soft lg:grid-cols-[0.95fr_1.05fr]">
         <div className="flex flex-col justify-between bg-sidebar p-7 text-white sm:p-10">
           <div>
-            <p className="text-sm font-semibold text-[#d7c9b6]">Creator Access</p>
+            <p className="text-sm font-semibold text-[#d7c9b6]">创作者入口</p>
             <h1 className="mt-5 text-4xl font-semibold leading-tight sm:text-5xl">
               创作者访问入口
             </h1>
@@ -134,7 +134,7 @@ export default function LoginPage() {
 
         <div className="flex flex-col justify-center p-6 sm:p-10">
           <div className="mb-7">
-            <p className="text-xs font-semibold text-accent">Studio Access</p>
+            <p className="text-xs font-semibold text-accent">账号访问</p>
             <h2 className="mt-2 text-3xl font-semibold leading-tight text-ink">
               {mode === "register"
                 ? "注册创作者账号"

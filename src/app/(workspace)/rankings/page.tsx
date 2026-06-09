@@ -17,8 +17,8 @@ const tabs: Array<{ id: RankingType; label: string; description: string }> = [
   },
   {
     id: "recommended",
-    label: "推荐流",
-    description: "平衡质量、安全和平台适配。"
+    label: "推荐",
+    description: "按质量、安全和平台适配展示。"
   }
 ];
 
@@ -46,10 +46,10 @@ export default async function RankingsPage({
       <div className="studio-panel overflow-hidden">
         <div className="grid gap-0 lg:grid-cols-[minmax(0,1fr)_320px]">
           <div className="p-6">
-            <p className="text-xs font-semibold text-accent">Distribution Desk</p>
-            <h2 className="mt-2 text-3xl font-semibold text-ink">内容分发榜单</h2>
+            <p className="text-xs font-semibold text-accent">榜单中心</p>
+            <h2 className="mt-2 text-3xl font-semibold text-ink">热点与最新内容</h2>
             <p className="mt-3 max-w-3xl text-sm leading-6 text-muted">
-              热点榜按阅读次数排序；新发布按时间排序，推荐流按质量和安全分发。
+              热点榜按阅读次数排序，新发布按时间排序，推荐内容综合质量与安全。
             </p>
           </div>
           <aside className="border-t border-line bg-sidebar p-6 text-white lg:border-l lg:border-t-0">
@@ -77,12 +77,12 @@ export default async function RankingsPage({
                   </>
                 ) : (
                   <>
-                    <p className="text-xs text-[#cbbfb1]">排序公式</p>
+                    <p className="text-xs text-[#cbbfb1]">排序规则</p>
                     <p className="mt-3 text-lg font-semibold leading-7">
-                      质量 75% / 发布时效 25% / 风险扣分
+                      质量与安全优先
                     </p>
                     <p className="mt-3 text-xs leading-5 text-[#a99d90]">
-                      用于推荐流的质量分发参考。
+                      适合作为演示推荐位的内容优先展示。
                     </p>
                   </>
                 )}
