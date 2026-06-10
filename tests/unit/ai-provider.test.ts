@@ -87,4 +87,17 @@ describe("ai provider", () => {
     expect(result.body).not.toContain("模板要求");
     expect(result.body).not.toContain("按当前标题模板生成");
   });
+
+  it("does not leak raw material names into mock fallback body", async () => {
+    const provider = createMockAiProvider();
+    const result = await provider.generateShortPost({
+      ...creationInput,
+      prompt: "把 {{topic}} 拆成可执行清单，每一点给出简短理由。",
+      materials: ["导流风险样例", "城市咖啡店封面"]
+    });
+
+    expect(result.body).not.toContain("导流风险样例");
+    expect(result.body).not.toContain("结合导流风险样例");
+    expect(result.coverSuggestion).toContain("2 个已选素材");
+  });
 });
