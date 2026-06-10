@@ -88,6 +88,8 @@ Playwright 使用 `http://127.0.0.1:3100`，避免和本地开发端口冲突。
 - [Deployment](docs/deployment.md)
 - [Assignment Submission Document](docs/submission-document.md)
 - [Delivery Checklist](docs/delivery-checklist.md)
+- [Submission Upload Checklist](docs/submission-upload-checklist.md)
+- [Demo Video Script](docs/demo-video-script.md)
 - [Feishu Technical Solution Draft](docs/feishu-technical-solution.md)
 - [Feishu Evaluation Summary Draft](docs/feishu-evaluation-summary.md)
 - [Feishu Safety Quality System Draft](docs/feishu-safety-quality-system.md)

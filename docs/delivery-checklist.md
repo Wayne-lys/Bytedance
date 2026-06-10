@@ -12,13 +12,14 @@ This checklist maps the PDF deliverables to the repository artifacts and the rem
 | Evaluation and distribution optimization report in Feishu | Draft ready | `docs/feishu-evaluation-summary.md` |
 | Safety rules and quality evaluation system | Draft ready | `docs/feishu-safety-quality-system.md` |
 | GitHub-hosted code on main/master | Complete | `https://github.com/Wayne-lys/Bytedance`, branch `master` |
+| Source code archive | Prepared locally | `deliverables/toutiao-ai-creator-platform-source.zip` |
 
 ## Deployment Fields To Fill
 
-- Public URL: `TODO: paste deployed URL`
-- QR code: `TODO: generate from public URL if required`
-- Latest deployed commit: `TODO: paste git commit shown by the deployment provider`
-- Database sync: set Neon `DATABASE_URL`, then run `npm run db:push` and `npm run db:seed` once for the deployed database.
+- Public URL: `https://bytedance-theta.vercel.app`
+- QR code: optional. Generate from the public URL only if the submission page asks for it.
+- Latest deployed commit: use the latest `Ready / Production` commit shown in Vercel Deployments. Feature verification commit: `5b49b19`.
+- Database sync: Neon `DATABASE_URL` is configured in Vercel. Build command should run `npm run db:push && npm run build`; run `npm run db:seed` only once when intentionally resetting demo data.
 
 ## Verification Commands
 
@@ -27,6 +28,11 @@ npm run test
 npm run build
 npm run test:e2e -- tests/performance/lcp.spec.ts
 ```
+
+Latest local verification:
+
+- `npm run test`: 137 tests passed.
+- `npm run build`: passed, with only existing Next.js `<img>` optimization warnings.
 
 ## Feature Coverage Summary
 
@@ -38,6 +44,7 @@ npm run test:e2e -- tests/performance/lcp.spec.ts
 - Ranking: hot by real reads, latest by publish time, recommended by quality, heat, freshness, feedback, and risk penalty.
 - Feedback: detail page views increment reads; likes and comments update feedback score.
 - Governance: offline, withdrawal, rollback, and exclusion from ranking surfaces.
+- External distribution: published and review-passed content can be simulated as synced to Douyin image-text content, with persisted external work ID and sync status.
 
 ## Optional Bonus Status
 

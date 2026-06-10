@@ -16,4 +16,5 @@ run-logs/
 debug.log
 tsconfig.tsbuildinfo
 .continue-here.md
+deliverables/*.zip
 
