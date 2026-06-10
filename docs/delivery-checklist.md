@@ -18,7 +18,7 @@ This checklist maps the PDF deliverables to the repository artifacts and the rem
 - Public URL: `TODO: paste deployed URL`
 - QR code: `TODO: generate from public URL if required`
 - Latest deployed commit: `TODO: paste git commit shown by the deployment provider`
-- Database sync: run `npm run db:push` or the platform's Prisma migration step after deploying the version that includes `PostComment`.
+- Database sync: set Neon `DATABASE_URL`, then run `npm run db:push` and `npm run db:seed` once for the deployed database.
 
 ## Verification Commands
 

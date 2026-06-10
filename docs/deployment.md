@@ -31,29 +31,27 @@ Local app URL: `http://localhost:3000`.
    - `SMS_DELIVERY_MODE=mock` for demo deployments that simulate phone codes
    - Volc SMS variables: `VOLC_ACCESSKEY`, `VOLC_SECRETKEY`, `VOLC_SMS_ACCOUNT`, `VOLC_SMS_SIGN`, `VOLC_SMS_TEMPLATE_ID`
    - Volc mail SMTP variables: `VOLC_EMAIL_SMTP_HOST`, `VOLC_EMAIL_SMTP_PORT`, `VOLC_EMAIL_SMTP_USER`, `VOLC_EMAIL_SMTP_PASS`, `VOLC_EMAIL_FROM`
-5. Use a hosted PostgreSQL database instead of local SQLite.
-6. Run Prisma migration/push as part of deployment setup.
+5. Use the Neon PostgreSQL connection string for `DATABASE_URL`.
+6. Run `npm run db:push` and `npm run db:seed` once against the Neon database before or after the first deploy.
 
 ## PostgreSQL Migration
 
-Update `prisma/schema.prisma`:
+The repository keeps `prisma/schema.prisma` on SQLite for local development. The scripts detect the current `DATABASE_URL`:
 
-```prisma
-datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
-}
-```
+- `file:./dev.db` uses the local SQLite schema.
+- `postgresql://...` or `postgres://...` generates a temporary PostgreSQL schema under `prisma/.generated/`.
 
-Then run:
+For Neon/Vercel, copy the Neon connection string into `.env` locally or the Vercel environment variable panel, then run:
 
 ```bash
 npm run db:generate
-npx prisma db push
+npm run db:push
 npm run db:seed
 ```
 
 For production, replace `db push` with migrations once the schema stabilizes.
+
+Do not commit the Neon connection string. Keep it only in `.env` or the Vercel secret panel.
 
 ## Object Storage
 
