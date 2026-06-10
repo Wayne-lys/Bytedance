@@ -7,6 +7,7 @@ async function main() {
   const passwordHash = await bcrypt.hash("Demo123456", 10);
 
   await prisma.postComment.deleteMany();
+  await prisma.externalDistribution.deleteMany();
   await prisma.rankingMetric.deleteMany();
   await prisma.qualityScore.deleteMany();
   await prisma.moderationResult.deleteMany();

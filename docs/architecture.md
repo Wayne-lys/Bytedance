@@ -64,5 +64,5 @@ The current MVP is local-first. A production version should evolve toward:
 - Redis or a queue for autosave, generation, review, and publish jobs.
 - Object storage for uploaded images.
 - Dedicated auth/session storage.
-- External content platform APIs or sandbox adapters for actual Toutiao/Douyin trend import and distribution.
+- External content platform integration currently uses a Douyin image-text sandbox adapter; future live adapters can replace it with actual Toutiao/Douyin trend import and distribution APIs after platform approval.
 - Observability around AI latency, moderation decisions, publish failures, and ranking drift.

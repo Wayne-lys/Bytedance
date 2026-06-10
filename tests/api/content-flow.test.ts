@@ -310,6 +310,52 @@ describe("content publishing flow api", () => {
     ]);
   });
 
+  it("simulates syncing a published safe post to Douyin and returns distribution status in detail", async () => {
+    const { POST } = await import("@/app/api/posts/route");
+    const distributionRoute = await import("@/app/api/posts/[id]/distributions/route");
+    const { GET } = await import("@/app/api/posts/[id]/route");
+    const publishResponse = await POST(
+      publishRequest(await withReviewToken({
+        title: "抖音分发模拟内容",
+        body: "这是一篇已经通过审核的安全图文，用于验证抖音图文模拟同步链路。",
+        tags: ["抖音", "分发"],
+        platform: "头条"
+      }))
+    );
+    const publishPayload = await publishResponse.json();
+    const postId = publishPayload.data.post.id;
+
+    const distributeResponse = await distributionRoute.POST(
+      new Request(`http://localhost/api/posts/${postId}/distributions`, {
+        method: "POST",
+        body: JSON.stringify({ platform: "douyin" })
+      }),
+      { params: { id: postId } }
+    );
+    const distributePayload = await distributeResponse.json();
+    const detailResponse = await GET(
+      new Request(`http://localhost/api/posts/${postId}`),
+      { params: { id: postId } }
+    );
+    const detailPayload = await detailResponse.json();
+
+    expect(distributeResponse.status).toBe(200);
+    expect(distributePayload.data.distribution).toEqual(
+      expect.objectContaining({
+        platform: "douyin",
+        platformLabel: "抖音图文",
+        status: "synced"
+      })
+    );
+    expect(distributePayload.data.distribution.externalId).toMatch(/^mock_douyin_/);
+    expect(detailPayload.data.post.distributions).toContainEqual(
+      expect.objectContaining({
+        platform: "douyin",
+        status: "synced"
+      })
+    );
+  });
+
   it("edits a published post and re-runs review before updating publication", async () => {
     const { POST } = await import("@/app/api/posts/route");
     const { PATCH } = await import("@/app/api/posts/[id]/route");

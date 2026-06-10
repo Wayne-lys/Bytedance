@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { PostFeedbackPanel } from "@/components/post-feedback-panel";
+import { PostDistributionPanel } from "@/components/post-distribution-panel";
 import { QualityScoreCard } from "@/components/quality-score-card";
 import { StatusBadge } from "@/components/status-badge";
 import { getPostDetail } from "@/features/posts/post-service";
@@ -215,6 +216,16 @@ function getPostMedia(post: PostDetail) {
   return [];
 }
 
+function serializableDistributions(post: PostDetail) {
+  return post.distributions.map((distribution) => ({
+    ...distribution,
+    syncedAt:
+      distribution.syncedAt instanceof Date
+        ? distribution.syncedAt.toISOString()
+        : distribution.syncedAt
+  }));
+}
+
 function PostMediaGallery({
   post,
   className = ""
@@ -351,6 +362,13 @@ export default async function ContentDetailPage({
               详情页聚合了创作者、发布时间、正文、标签和质量评分，满足内容消费侧展示要求。
             </p>
           </div>
+
+          <PostDistributionPanel
+            postId={post.id}
+            status={post.status}
+            moderationRiskLevel={post.moderationResult?.riskLevel}
+            initialDistributions={serializableDistributions(post)}
+          />
 
           {post.qualitySummary ? (
             <QualityScoreCard score={post.qualitySummary} size="large" />

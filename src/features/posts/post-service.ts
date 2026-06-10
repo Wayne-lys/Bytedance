@@ -36,6 +36,13 @@ export class PublishReviewRequiredError extends Error {
   }
 }
 
+export class DistributionBlockedError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "DistributionBlockedError";
+  }
+}
+
 function parseTags(tags: string[] | string | null | undefined) {
   if (Array.isArray(tags)) {
     return tags.map((tag) => tag.trim()).filter(Boolean);
@@ -106,6 +113,9 @@ const postInclude = {
       }
     }
   },
+  distributions: {
+    orderBy: { syncedAt: "desc" }
+  },
   materials: {
     orderBy: { position: "asc" },
     include: {
@@ -123,6 +133,17 @@ const postInclude = {
     }
   }
 } satisfies Prisma.PostInclude;
+
+const distributionPlatforms = {
+  douyin: {
+    label: "抖音图文",
+    externalIdPrefix: "mock_douyin",
+    externalUrlBase: "https://www.douyin.com/mock/item",
+    message: "沙盒模拟同步成功，已记录外部分发作品 ID。"
+  }
+} as const;
+
+type DistributionPlatform = keyof typeof distributionPlatforms;
 
 function clampFeedbackScore(score: number) {
   return Math.max(0, Math.min(100, Math.round(score)));
@@ -154,6 +175,34 @@ function serializeMetric(metric: {
     saves: metric.saves,
     feedbackScore: metric.feedbackScore
   };
+}
+
+function serializeDistribution(record: {
+  id: string;
+  platform: string;
+  platformLabel: string;
+  status: string;
+  externalId: string;
+  externalUrl: string | null;
+  message: string | null;
+  syncedAt: Date;
+}) {
+  return {
+    id: record.id,
+    platform: record.platform,
+    platformLabel: record.platformLabel,
+    status: record.status,
+    externalId: record.externalId,
+    externalUrl: record.externalUrl,
+    message: record.message,
+    syncedAt: record.syncedAt
+  };
+}
+
+function mockExternalId(platform: DistributionPlatform, postId: string) {
+  const suffix = postId.replace(/[^a-z0-9]/gi, "").slice(-10) || Date.now().toString(36);
+
+  return `${distributionPlatforms[platform].externalIdPrefix}_${suffix}`;
 }
 
 export async function getPublishingAuthor() {
@@ -262,6 +311,7 @@ export function serializePost<
       authorName: comment.author?.name ?? comment.authorName,
       createdAt: comment.createdAt
     })),
+    distributions: post.distributions.map(serializeDistribution),
     qualitySummary: post.qualityScore
       ? {
           originality: post.qualityScore.originality,
@@ -372,6 +422,64 @@ export async function publishPost(input: PostInput) {
   });
 
   return serializePost(post);
+}
+
+export async function simulatePostDistribution(
+  id: string,
+  platform: DistributionPlatform = "douyin"
+) {
+  const platformConfig = distributionPlatforms[platform];
+  const post = await prisma.post.findUnique({
+    where: { id },
+    include: {
+      moderationResult: true
+    }
+  });
+
+  if (!post) {
+    return null;
+  }
+
+  if (post.status !== "published") {
+    throw new DistributionBlockedError("只有已发布内容可以同步到外部分发平台。");
+  }
+
+  if (
+    !post.moderationResult ||
+    post.moderationResult.riskLevel === "high" ||
+    post.moderationResult.riskLevel === "medium"
+  ) {
+    throw new DistributionBlockedError("内容未通过安全审核，不能同步到抖音图文。");
+  }
+
+  const externalId = mockExternalId(platform, post.id);
+  const distribution = await prisma.externalDistribution.upsert({
+    where: {
+      postId_platform: {
+        postId: post.id,
+        platform
+      }
+    },
+    update: {
+      status: "synced",
+      platformLabel: platformConfig.label,
+      externalId,
+      externalUrl: `${platformConfig.externalUrlBase}/${externalId}`,
+      message: platformConfig.message,
+      syncedAt: new Date()
+    },
+    create: {
+      postId: post.id,
+      platform,
+      platformLabel: platformConfig.label,
+      status: "synced",
+      externalId,
+      externalUrl: `${platformConfig.externalUrlBase}/${externalId}`,
+      message: platformConfig.message
+    }
+  });
+
+  return serializeDistribution(distribution);
 }
 
 export async function listPosts(status?: string | null) {

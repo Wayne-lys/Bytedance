@@ -41,4 +41,4 @@ npm run test:e2e -- tests/performance/lcp.spec.ts
 
 ## Optional Bonus Status
 
-- Douyin/Toutiao Open API: not live because real access requires platform application, domain, OAuth callback, and business/individual merchant credentials. The codebase is ready to add a sandbox adapter or live adapter later.
+- Douyin/Toutiao Open API: sandbox adapter complete. Published, review-passed posts can be simulated as synced to Douyin image-text content with a persisted mock external work ID. Real live access still requires platform application, domain, OAuth callback, and business/individual merchant credentials.

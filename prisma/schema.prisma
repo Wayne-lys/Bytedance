@@ -133,6 +133,7 @@ model Post {
   rankingMetric    RankingMetric?
   materials        PostMaterial[]
   comments         PostComment[]
+  distributions    ExternalDistribution[]
 }
 
 model PostComment {
@@ -161,6 +162,25 @@ model PostMaterial {
 
   @@id([postId, materialId])
   @@index([materialId])
+}
+
+model ExternalDistribution {
+  id            String   @id @default(cuid())
+  postId        String
+  platform      String
+  platformLabel String
+  status        String   @default("synced")
+  externalId    String
+  externalUrl   String?
+  message       String?
+  syncedAt      DateTime @default(now())
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, platform])
+  @@index([platform, status])
 }
 
 model ModerationResult {
