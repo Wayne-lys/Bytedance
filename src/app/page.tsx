@@ -228,28 +228,30 @@ export default async function Home() {
                   </span>
                 </div>
 
-                <div className="mt-4 grid items-start gap-4 xl:grid-cols-[minmax(0,0.96fr)_minmax(0,1.04fr)]">
-                  <div className="overflow-hidden rounded-lg border border-line bg-panel shadow-crisp">
+                <div className="mt-4 grid items-start gap-4 xl:grid-cols-[minmax(0,0.96fr)_minmax(0,1.04fr)] xl:items-stretch">
+                  <div className="flex flex-col overflow-hidden rounded-lg border border-line bg-panel shadow-crisp xl:h-full">
                     <div className="border-b border-line px-4 py-3">
                       <p className="text-xs font-semibold text-accent">封面资产</p>
                       <p className="mt-1 text-lg font-semibold leading-tight">
                         {previewMaterial?.name ?? "暂无封面素材"}
                       </p>
                     </div>
-                    {previewMaterial ? (
-                      <Image
-                        src={previewMaterial.url}
-                        alt={previewMaterial.name}
-                        width={960}
-                        height={540}
-                        className="aspect-[16/10] w-full object-cover"
-                        priority
-                      />
-                    ) : (
-                      <div className="flex aspect-[16/10] w-full items-center justify-center bg-panel-muted px-5 text-center text-sm leading-6 text-muted">
-                        素材库暂无可用图片，上传或恢复素材后这里会自动更新。
-                      </div>
-                    )}
+                    <div className="flex min-h-[160px] bg-panel-muted xl:flex-1">
+                      {previewMaterial ? (
+                        <Image
+                          src={previewMaterial.url}
+                          alt={previewMaterial.name}
+                          width={960}
+                          height={540}
+                          className="aspect-[16/10] w-full object-cover xl:aspect-auto xl:h-full"
+                          priority
+                        />
+                      ) : (
+                        <div className="flex aspect-[16/10] w-full items-center justify-center px-5 text-center text-sm leading-6 text-muted xl:aspect-auto xl:h-full">
+                          素材库暂无可用图片，上传或恢复素材后这里会自动更新。
+                        </div>
+                      )}
+                    </div>
                     <div className="grid grid-cols-2 gap-2 border-t border-line bg-panel-muted p-3 text-xs">
                       <div>
                         <p className="text-muted">合规状态</p>
@@ -268,7 +270,7 @@ export default async function Home() {
                     </div>
                   </div>
 
-                  <div className="grid gap-3">
+                  <div className="grid gap-3 xl:h-full xl:auto-rows-fr">
                     {visibleOperationPanels.map((panel) => (
                       <div key={panel.label} className="rounded-lg border border-line bg-panel px-4 py-3">
                         <div className="flex items-start justify-between gap-3">
