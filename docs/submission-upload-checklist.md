@@ -24,7 +24,7 @@
 ## 提交文档可直接填写的信息
 
 - 项目名称：AI 创作者辅助生产与分发平台
-- 作者：李彦松（提交前可按实际姓名修改）
+- 作者：李岩松
 - 在线访问地址：https://bytedance-theta.vercel.app
 - GitHub 仓库：https://github.com/Wayne-lys/Bytedance
 - 管理员账号：`admin@example.com` / `Demo123456`
