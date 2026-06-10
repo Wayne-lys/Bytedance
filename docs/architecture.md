@@ -22,6 +22,7 @@ The project uses a single Next.js App Router codebase for UI, route handlers, do
 - AI generation: `/api/ai/generate`
 - Moderation: `/api/moderation/review`, `/api/moderation/rewrite`, `/api/moderation/evaluate`
 - Publishing: `/api/posts`, `/api/posts/[id]`, `/api/posts/[id]/status`
+- Reader feedback: `/api/posts/[id]/feedback`, `/api/posts/[id]/comments`
 - Ranking: `/api/ranking`
 
 ## Data Model
@@ -37,10 +38,11 @@ Core Prisma models:
 - `ModerationResult`
 - `QualityScore`
 - `RankingMetric`
+- `PostComment`
 - `AuditRule`
 - `EvaluationCase`
 
-The central content entity is `Post`. A published post owns one moderation result, one quality score, and one ranking metric. Distribution governance uses the post `status` field to support published, rejected, offline, and withdrawn states, with rollback returning governed content to the published state.
+The central content entity is `Post`. A published post owns one moderation result, one quality score, one ranking metric, and zero or more comments. Distribution governance uses the post `status` field to support published, rejected, offline, and withdrawn states, with rollback returning governed content to the published state. Reader views, likes, and comments update ranking feedback signals used by the recommended feed.
 
 ## AI Provider Strategy
 
@@ -62,5 +64,5 @@ The current MVP is local-first. A production version should evolve toward:
 - Redis or a queue for autosave, generation, review, and publish jobs.
 - Object storage for uploaded images.
 - Dedicated auth/session storage.
-- External content platform APIs for actual Toutiao/Douyin distribution.
+- External content platform APIs or sandbox adapters for actual Toutiao/Douyin trend import and distribution.
 - Observability around AI latency, moderation decisions, publish failures, and ranking drift.

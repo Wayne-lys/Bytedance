@@ -47,7 +47,7 @@ The ranking score is calculated as:
 score = quality * 0.45 + heat * 0.30 + freshness * 0.15 + feedback * 0.10 - riskPenalty
 ```
 
-The UI exposes the contribution from each factor so reviewers can explain why an item appears in the hot, latest, or recommended views. Hot ranking sorts by real detail-page reads first; recommended ranking uses the weighted score above.
+The UI exposes the contribution from each factor so reviewers can explain why an item appears in the hot, latest, or recommended views. Hot ranking sorts by real detail-page reads first; latest ranking sorts by publish time; recommended ranking uses the weighted score above. Likes and comments refresh the feedback score used by recommended ranking.
 
 ## Advanced Challenge Coverage
 
@@ -70,10 +70,10 @@ The test publishes a lightweight demo post, measures Largest Contentful Paint fo
 LCP <= 2500ms
 ```
 
-Latest local verification on 2026-05-30:
+Latest local verification target:
 
-- `/rankings`: 736ms
-- `/content/[id]`: 1668ms
+- `/rankings`: <= 2500ms
+- generated `/content/[id]`: <= 2500ms
 
 Exact millisecond values are also printed by the Playwright test because local hardware and background load can vary.
 

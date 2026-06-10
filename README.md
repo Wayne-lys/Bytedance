@@ -14,9 +14,9 @@
 | 内容安全审核 | 本地规则审核、风险等级、改写 API、内容下线/撤回/回滚 |
 | 内容质量评分 | 原创性、结构、信息密度、清晰度、互动潜力、平台适配 |
 | 一键发布和二次编辑 | 发布 API、内容管理、详情页、重新审核更新 |
-| 热点/爆文/推荐榜单 | 智能排序公式、cursor 分页、滚动加载 |
-| 内容详情页 | 发布者、发布时间、封面、正文、标签、阅读数、质量摘要 |
-| 性能优化 | Playwright LCP 检测，当前 `/rankings` 736ms、详情页 1668ms |
+| 热点/新发布/推荐榜单 | 热点按真实阅读数排序，新发布按发布时间排序，推荐综合质量、热度、新鲜度、反馈和风险 |
+| 内容详情页 | 发布者、发布时间、封面、正文、标签、阅读数、点赞评论、质量摘要 |
+| 性能优化 | Playwright LCP 检测，目标 `/rankings` 和详情页均不超过 2.5s |
 
 ## 快速开始
 
@@ -86,3 +86,8 @@ Playwright 使用 `http://127.0.0.1:3100`，避免和本地开发端口冲突。
 - [Safety and Quality](docs/safety-and-quality.md)
 - [Evaluation Report](docs/evaluation-report.md)
 - [Deployment](docs/deployment.md)
+- [Assignment Submission Document](docs/submission-document.md)
+- [Delivery Checklist](docs/delivery-checklist.md)
+- [Feishu Technical Solution Draft](docs/feishu-technical-solution.md)
+- [Feishu Evaluation Summary Draft](docs/feishu-evaluation-summary.md)
+- [Feishu Safety Quality System Draft](docs/feishu-safety-quality-system.md)

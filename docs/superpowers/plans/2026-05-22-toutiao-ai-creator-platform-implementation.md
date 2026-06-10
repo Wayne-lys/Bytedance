@@ -40,7 +40,7 @@ Application structure:
 - `src/app/(workspace)/materials/page.tsx`: material library.
 - `src/app/(workspace)/posts/page.tsx`: content management.
 - `src/app/(workspace)/review/page.tsx`: moderation and quality view.
-- `src/app/(workspace)/rankings/page.tsx`: hot/viral/recommended rankings.
+- `src/app/(workspace)/rankings/page.tsx`: hot/latest/recommended rankings.
 - `src/app/(workspace)/rules/page.tsx`: safety and quality rules.
 - `src/app/(workspace)/evaluation/page.tsx`: evaluation dashboard.
 - `src/app/content/[id]/page.tsx`: public content detail.
@@ -730,14 +730,14 @@ Return sorted items with explanation:
 
 - [ ] **Step 3: Implement ranking API**
 
-`GET /api/ranking?type=hot|viral|recommended&cursor=...`
+`GET /api/ranking?type=hot|latest|recommended&cursor=...`
 
 - [ ] **Step 4: Implement ranking page**
 
 Tabs:
 
 - 热点榜
-- 爆文榜
+- 新发布
 - 推荐流
 
 Use infinite scroll and lightweight cards.
