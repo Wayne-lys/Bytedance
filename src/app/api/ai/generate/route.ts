@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { ExternalAiProviderError } from "@/features/ai/openai-compatible";
 import { createAiProvider } from "@/features/ai/provider";
 import { jsonError, jsonOk } from "@/lib/http";
 
@@ -19,7 +20,15 @@ export async function POST(request: Request) {
   }
 
   const provider = createAiProvider();
-  const generated = await provider.generateShortPost(input.data);
+  try {
+    const generated = await provider.generateShortPost(input.data);
 
-  return jsonOk({ generated });
+    return jsonOk({ generated });
+  } catch (error) {
+    if (error instanceof ExternalAiProviderError) {
+      return jsonError(`真实 AI 调用失败：${error.message}`, 502);
+    }
+
+    return jsonError("AI 生成失败，请稍后重试", 500);
+  }
 }

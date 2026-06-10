@@ -8,6 +8,13 @@ import type {
 } from "@/features/ai/provider";
 import { interpolatePromptTemplate } from "@/features/ai/prompt-fallback";
 
+export class ExternalAiProviderError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "ExternalAiProviderError";
+  }
+}
+
 function buildPrompt(input: GenerateShortPostInput) {
   const expandedPrompt = interpolatePromptTemplate(input);
 
@@ -25,8 +32,29 @@ function buildPrompt(input: GenerateShortPostInput) {
   ].join("\n");
 }
 
+function normalizeJsonContent(content: string) {
+  const trimmed = content.trim();
+  const fencedMatch = trimmed.match(/^```(?:json)?\s*([\s\S]*?)\s*```$/i);
+
+  if (fencedMatch?.[1]) {
+    return fencedMatch[1].trim();
+  }
+
+  const firstBrace = trimmed.indexOf("{");
+  const lastBrace = trimmed.lastIndexOf("}");
+
+  if (firstBrace >= 0 && lastBrace > firstBrace) {
+    return trimmed.slice(firstBrace, lastBrace + 1);
+  }
+
+  return trimmed;
+}
+
 function safeParseGeneratedContent(content: string): Omit<GeneratedShortPost, "provider"> {
-  const parsed = JSON.parse(content) as Omit<GeneratedShortPost, "provider">;
+  const parsed = JSON.parse(normalizeJsonContent(content)) as Omit<
+    GeneratedShortPost,
+    "provider"
+  >;
 
   return {
     title: String(parsed.title),
@@ -69,15 +97,20 @@ export function createOpenAiCompatibleProvider(config: AiProviderConfig): AiProv
         const content = completion.choices[0]?.message.content;
 
         if (!content) {
-          return fallback.generateShortPost(input);
+          throw new ExternalAiProviderError("真实 AI 没有返回内容");
         }
 
         return {
           ...safeParseGeneratedContent(content),
           provider: "openai-compatible"
         };
-      } catch {
-        return fallback.generateShortPost(input);
+      } catch (error) {
+        const message =
+          error instanceof Error && error.message
+            ? error.message
+            : "外部模型请求失败";
+
+        throw new ExternalAiProviderError(message);
       }
     }
   };

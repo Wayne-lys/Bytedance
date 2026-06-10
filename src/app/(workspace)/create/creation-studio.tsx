@@ -120,6 +120,14 @@ function providerLabel(provider: string) {
     return "Ark AI";
   }
 
+  if (provider === "mock") {
+    return "本地 mock";
+  }
+
+  if (provider === "local-fallback") {
+    return "本地兜底";
+  }
+
   return provider;
 }
 
@@ -505,7 +513,12 @@ export function CreationStudio({
         setReview(null);
         setReviewedDraftKey("");
         setPublishState("AI 生成完成，请审核后发布。");
-      } catch {
+      } catch (error) {
+        const message =
+          error instanceof Error && error.message
+            ? error.message
+            : "AI 生成失败";
+
         setDraft((current) => ({
           ...current,
           ...fallbackDraft,
@@ -516,7 +529,7 @@ export function CreationStudio({
           publishAdvice: fallbackGenerated.publishAdvice,
           provider: "local-fallback"
         });
-        setPublishState("AI 生成失败，已使用本地兜底草稿。");
+        setPublishState(`${message}，已使用本地兜底草稿。`);
       }
     });
   }
@@ -765,6 +778,12 @@ export function CreationStudio({
 
           {generationGuidance ? (
             <section className="grid gap-3 rounded-md border border-line bg-panel-muted/70 p-4 md:grid-cols-2">
+              <div className="md:col-span-2">
+                <p className="text-xs font-semibold text-accent">生成来源</p>
+                <p className="mt-1 text-sm leading-6 text-ink">
+                  {providerLabel(generationGuidance.provider ?? "mock")}
+                </p>
+              </div>
               <div>
                 <p className="text-xs font-semibold text-accent">封面建议</p>
                 <p className="mt-1 text-sm leading-6 text-ink">
