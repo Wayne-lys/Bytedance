@@ -108,7 +108,7 @@ export default async function PostsPage({
             <p className="text-xs font-semibold text-accent">Content Ops</p>
             <h2 className="mt-2 text-3xl font-semibold text-ink">内容管理</h2>
             <p className="mt-2 max-w-3xl text-sm leading-6 text-muted">
-              集中管理草稿、已发布和被驳回内容。这里保留二次编辑、重新审核和更新发布入口，方便演示发布后的闭环。
+              集中管理草稿、已发布和被驳回内容。这里保留继续编辑、重新审核和内容治理入口，方便演示发布后的闭环。
             </p>
           </div>
           <a
@@ -164,15 +164,9 @@ export default async function PostsPage({
                 <div className="flex flex-wrap items-center gap-2 lg:justify-end">
                   <a
                     href={`/create?draftId=${draft.id}`}
-                    className="studio-button border border-line px-3 py-2 text-sm font-semibold text-ink hover:border-accent"
-                  >
-                    二次编辑
-                  </a>
-                  <a
-                    href={`/create?draftId=${draft.id}&publish=true`}
                     className="studio-button bg-accent px-3 py-2 text-sm font-semibold text-white shadow-crisp hover:bg-sidebar"
                   >
-                    更新发布
+                    继续编辑
                   </a>
                 </div>
               </article>
