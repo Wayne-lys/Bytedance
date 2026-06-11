@@ -64,6 +64,17 @@ describe("workspace shell", () => {
     expect(contentScrollArea).toHaveClass("lg:overflow-y-auto");
   });
 
+  it("uses a deployment-safe system status label", () => {
+    render(
+      <AppShell>
+        <p>页面内容</p>
+      </AppShell>
+    );
+
+    expect(screen.getByText("系统状态")).toBeInTheDocument();
+    expect(screen.queryByText("本地演示环境")).not.toBeInTheDocument();
+  });
+
   it("does not expose restricted navigation while auth is loading", () => {
     vi.stubGlobal(
       "fetch",

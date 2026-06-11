@@ -32,6 +32,21 @@ type SessionUser = {
   permissionLabels?: string[];
 };
 
+function resolveSystemStatusLabel() {
+  if (process.env.NEXT_PUBLIC_VERCEL_ENV === "preview") {
+    return "预览演示环境";
+  }
+
+  if (
+    process.env.NEXT_PUBLIC_VERCEL_ENV === "production" ||
+    process.env.NODE_ENV === "production"
+  ) {
+    return "线上演示环境";
+  }
+
+  return "开发调试环境";
+}
+
 export function AppShell({
   children,
   eyebrow = "AI 内容工作台",
@@ -92,6 +107,7 @@ export function AppShell({
       !item.requiredPermission ||
       currentUser?.permissions?.includes(item.requiredPermission)
   );
+  const systemStatusLabel = resolveSystemStatusLabel();
 
   return (
     <main className="min-h-screen p-1.5 sm:p-2">
@@ -140,7 +156,9 @@ export function AppShell({
             <div className="hidden border-t border-white/10 p-3 lg:block">
               <div className="rounded-md border border-white/10 bg-white/[0.04] p-3.5">
                 <p className="text-xs text-[#cbbfb1]">系统状态</p>
-                <p className="mt-2 text-base font-semibold text-white">本地演示环境</p>
+                <p className="mt-2 text-base font-semibold text-white">
+                  {systemStatusLabel}
+                </p>
                 <div className="mt-3 h-1.5 rounded-full bg-white/10">
                   <div className="h-1.5 w-full rounded-full bg-accent" />
                 </div>
