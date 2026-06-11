@@ -149,6 +149,16 @@ function NavIcon({ name }: { name: NavIconName }) {
   }
 }
 
+function LogoutIcon() {
+  return (
+    <IconSvg>
+      <path d="M9 6H6.8A1.8 1.8 0 0 0 5 7.8v8.4A1.8 1.8 0 0 0 6.8 18H9" />
+      <path d="M13 8l4 4-4 4" />
+      <path d="M17 12H9" />
+    </IconSvg>
+  );
+}
+
 export function AppShell({
   children,
   eyebrow = "AI 内容工作台",
@@ -210,6 +220,7 @@ export function AppShell({
       currentUser?.permissions?.includes(item.requiredPermission)
   );
   const systemStatusLabel = resolveSystemStatusLabel();
+  const isHomePage = pathname === "/";
 
   return (
     <main className="min-h-screen p-1.5 sm:p-2">
@@ -273,14 +284,43 @@ export function AppShell({
         </aside>
 
         <section className="min-w-0 rounded-lg border border-line bg-paper/80 shadow-soft lg:flex lg:h-[calc(100vh-1rem)] lg:flex-col lg:overflow-hidden">
-          <header className="shrink-0 border-b border-line bg-panel/78 px-4 py-3 backdrop-blur md:px-5 md:py-4">
-            <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
-              <div className="max-w-4xl">
-                <p className="text-xs font-semibold text-accent">{eyebrow}</p>
-                <h1 className="mt-2 text-2xl font-semibold leading-tight text-ink sm:text-3xl">
+          <header
+            data-testid="workspace-header"
+            className={`shrink-0 border-b border-line bg-panel/78 px-4 backdrop-blur md:px-5 ${
+              isHomePage ? "py-3 md:py-4" : "py-2"
+            }`}
+          >
+            <div
+              className={
+                isHomePage
+                  ? "flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between"
+                  : "flex flex-col gap-2 md:flex-row md:items-center md:justify-between"
+              }
+            >
+              <div
+                className={
+                  isHomePage
+                    ? "max-w-4xl"
+                    : "flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1"
+                }
+              >
+                <p className="shrink-0 text-xs font-semibold text-accent">{eyebrow}</p>
+                <h1
+                  className={
+                    isHomePage
+                      ? "mt-2 text-2xl font-semibold leading-tight text-ink sm:text-3xl"
+                      : "min-w-0 truncate text-lg font-semibold leading-6 text-ink"
+                  }
+                >
                   {title}
                 </h1>
-                <p className="mt-2 max-w-3xl text-sm leading-6 text-muted">
+                <p
+                  className={
+                    isHomePage
+                      ? "mt-2 max-w-3xl text-sm leading-6 text-muted"
+                      : "sr-only"
+                  }
+                >
                   {description}
                 </p>
               </div>
@@ -288,14 +328,20 @@ export function AppShell({
               <div className="flex flex-wrap items-center gap-2">
                 <Link
                   href="/rankings"
-                  className="studio-button inline-flex h-10 items-center justify-center border border-line bg-panel px-4 text-sm font-medium text-ink hover:border-accent"
+                  className={`studio-button inline-flex items-center justify-center border border-line bg-panel text-sm font-medium text-ink hover:border-accent ${
+                    isHomePage ? "h-10 px-4" : "h-9 px-3"
+                  }`}
                 >
                   查看榜单
                 </Link>
                 {currentUser ? (
                   <>
-                    <span className="studio-button inline-flex h-10 items-center justify-center border border-line bg-panel px-4 text-sm font-medium text-ink">
-                      <span className="max-w-44 truncate">
+                    <span
+                      className={`studio-button inline-flex items-center justify-center border border-line bg-panel text-sm font-medium text-ink ${
+                        isHomePage ? "h-10 px-4" : "h-9 px-3"
+                      }`}
+                    >
+                      <span className={isHomePage ? "max-w-44 truncate" : "max-w-36 truncate"}>
                         {currentUser.name ?? currentUser.email ?? currentUser.phone ?? "已登录"}
                       </span>
                       {currentUser.roleLabel ? (
@@ -306,16 +352,22 @@ export function AppShell({
                     </span>
                     <button
                       type="button"
+                      aria-label="退出登录"
+                      title="退出登录"
                       onClick={() => void logout()}
-                      className="studio-button inline-flex h-10 items-center justify-center bg-sidebar px-4 text-sm font-medium text-white shadow-crisp hover:bg-accent"
+                      className={`studio-button inline-flex items-center justify-center bg-sidebar text-white shadow-crisp hover:bg-accent ${
+                        isHomePage ? "size-10" : "size-9"
+                      }`}
                     >
-                      退出登录
+                      <LogoutIcon />
                     </button>
                   </>
                 ) : authChecked ? (
                   <Link
                     href="/login"
-                    className="studio-button inline-flex h-10 items-center justify-center bg-sidebar px-4 text-sm font-medium text-white shadow-crisp hover:bg-accent"
+                    className={`studio-button inline-flex items-center justify-center bg-sidebar text-sm font-medium text-white shadow-crisp hover:bg-accent ${
+                      isHomePage ? "h-10 px-4" : "h-9 px-3"
+                    }`}
                   >
                     登录入口
                   </Link>

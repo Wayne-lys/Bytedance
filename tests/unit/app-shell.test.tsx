@@ -5,9 +5,10 @@ import { StatusBadge } from "@/components/status-badge";
 
 const replaceMock = vi.fn();
 const refreshMock = vi.fn();
+let pathnameMock = "/create";
 
 vi.mock("next/navigation", () => ({
-  usePathname: () => "/create",
+  usePathname: () => pathnameMock,
   useRouter: () => ({
     replace: replaceMock,
     refresh: refreshMock
@@ -18,6 +19,7 @@ describe("workspace shell", () => {
   beforeEach(() => {
     replaceMock.mockClear();
     refreshMock.mockClear();
+    pathnameMock = "/create";
     vi.stubGlobal(
       "fetch",
       vi.fn().mockResolvedValue(
@@ -88,6 +90,41 @@ describe("workspace shell", () => {
     expect(contentCard).toHaveClass("lg:overflow-hidden");
     expect(contentScrollArea).toHaveClass("lg:flex-1");
     expect(contentScrollArea).toHaveClass("lg:overflow-y-auto");
+  });
+
+  it("uses a compact toolbar header away from the home page", () => {
+    render(
+      <AppShell>
+        <p>页面内容</p>
+      </AppShell>
+    );
+
+    const header = screen.getByTestId("workspace-header");
+    const heading = screen.getByRole("heading", { name: "AI 创作者工作台" });
+    const description = screen.getByText("围绕创作、审核、发布和榜单的完整演示闭环。");
+
+    expect(header).toHaveClass("py-2");
+    expect(header).not.toHaveClass("py-3");
+    expect(heading).toHaveClass("text-lg");
+    expect(description).toHaveClass("sr-only");
+  });
+
+  it("keeps a roomier header on the home page", () => {
+    pathnameMock = "/";
+
+    render(
+      <AppShell>
+        <p>页面内容</p>
+      </AppShell>
+    );
+
+    const header = screen.getByTestId("workspace-header");
+    const heading = screen.getByRole("heading", { name: "AI 创作者工作台" });
+    const description = screen.getByText("围绕创作、审核、发布和榜单的完整演示闭环。");
+
+    expect(header).toHaveClass("py-3");
+    expect(heading).toHaveClass("text-2xl");
+    expect(description).not.toHaveClass("sr-only");
   });
 
   it("uses a deployment-safe system status label", () => {
@@ -222,6 +259,39 @@ describe("workspace shell", () => {
     expect(await screen.findByText("测试用户")).toBeInTheDocument();
     expect(screen.queryByRole("link", { name: "登录入口" })).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "退出登录" })).toBeInTheDocument();
+  });
+
+  it("renders logout as a tooltip icon button", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(
+        new Response(
+          JSON.stringify({
+            ok: true,
+            data: {
+              user: {
+                id: "user_1",
+                email: "test@example.com",
+                name: "测试用户"
+              }
+            }
+          }),
+          { status: 200 }
+        )
+      )
+    );
+
+    render(
+      <AppShell>
+        <p>页面内容</p>
+      </AppShell>
+    );
+
+    const logoutButton = await screen.findByRole("button", { name: "退出登录" });
+
+    expect(logoutButton).toHaveAttribute("title", "退出登录");
+    expect(logoutButton.querySelector("svg[aria-hidden='true']")).not.toBeNull();
+    expect(logoutButton).not.toHaveTextContent("退出登录");
   });
 
   it("redirects to the login page after logout", async () => {
