@@ -50,7 +50,7 @@ export function ReviewWorkspace({
   );
 
   return (
-    <section className="grid gap-4 xl:h-[calc(100vh-14rem)] xl:min-h-[640px] xl:grid-cols-[0.95fr_1.05fr] xl:items-stretch xl:overflow-hidden">
+    <section className="grid gap-4 lg:flex-1 lg:min-h-0 xl:min-h-0 xl:grid-cols-[0.95fr_1.05fr] xl:items-stretch xl:overflow-hidden">
       <div
         className="studio-panel flex min-h-0 flex-col overflow-hidden p-6"
         data-testid="review-detail-panel"
