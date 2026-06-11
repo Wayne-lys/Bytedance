@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { OfflineSyncIndicator } from "@/components/offline-sync-indicator";
 import { PromptLibraryPanel } from "@/components/prompt-library-panel";
 import { QualityScoreCard } from "@/components/quality-score-card";
@@ -71,6 +71,7 @@ type GenerationGuidance = {
 type ActiveAction = "generate" | "save" | "review" | "publish" | "rewrite" | "clear";
 
 const DRAFT_STORAGE_KEY = "creator-draft";
+const AUTOSAVE_INTERVAL_SECONDS = 30;
 
 const emptyDraft: DraftState = {
   materialIds: [],
@@ -229,6 +230,9 @@ export function CreationStudio({
   const [publishState, setPublishState] = useState("");
   const [detailHref, setDetailHref] = useState("");
   const [activeAction, setActiveAction] = useState<ActiveAction | null>(null);
+  const [autosaveSecondsLeft, setAutosaveSecondsLeft] = useState(
+    AUTOSAVE_INTERVAL_SECONDS
+  );
   const [generationGuidance, setGenerationGuidance] =
     useState<GenerationGuidance | null>(null);
   const storageReadyRef = useRef(false);
@@ -383,7 +387,7 @@ export function CreationStudio({
     setGenerationGuidance(null);
   }
 
-  async function saveCurrentDraft(nextState = "synced") {
+  const saveCurrentDraft = useCallback(async (nextState = "synced") => {
     if (!navigator.onLine) {
       setSyncState("offline");
       return;
@@ -404,7 +408,7 @@ export function CreationStudio({
       setDraft((current) => ({ ...current, id: payload.data.draft.id }));
       setSyncState("synced");
     }
-  }
+  }, [draft]);
 
   async function clearCurrentDraft() {
     await runAction("clear", async () => {
@@ -667,10 +671,15 @@ export function CreationStudio({
   }
 
   useEffect(() => {
+    setAutosaveSecondsLeft(AUTOSAVE_INTERVAL_SECONDS);
+  }, [draft]);
+
+  useEffect(() => {
     const timer = window.setInterval(() => {
-      void saveCurrentDraft();
-    }, 30_000);
+      setAutosaveSecondsLeft((current) => Math.max(current - 1, 0));
+    }, 1_000);
     const handleOnline = () => {
+      setAutosaveSecondsLeft(AUTOSAVE_INTERVAL_SECONDS);
       void saveCurrentDraft();
     };
 
@@ -680,7 +689,16 @@ export function CreationStudio({
       window.clearInterval(timer);
       window.removeEventListener("online", handleOnline);
     };
-  });
+  }, [saveCurrentDraft]);
+
+  useEffect(() => {
+    if (autosaveSecondsLeft > 0) {
+      return;
+    }
+
+    setAutosaveSecondsLeft(AUTOSAVE_INTERVAL_SECONDS);
+    void saveCurrentDraft();
+  }, [autosaveSecondsLeft, saveCurrentDraft]);
 
   const needsRewrite = Boolean(
     review && review.moderation.riskLevel !== "safe"
@@ -700,7 +718,9 @@ export function CreationStudio({
             </div>
             <div className="flex flex-wrap items-center gap-2">
               <OfflineSyncIndicator state={syncState} />
-              <StatusBadge tone="neutral">30 秒自动保存</StatusBadge>
+              <StatusBadge tone="neutral">
+                {autosaveSecondsLeft} 秒后自动保存
+              </StatusBadge>
             </div>
           </div>
         </div>

@@ -63,6 +63,18 @@ export default async function RulesPage() {
 
       <div className="grid gap-4">
         <section className="studio-panel p-6">
+          <h3 className="text-xl font-semibold text-ink">质量评分维度</h3>
+          <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+            {qualityDimensions.map((dimension) => (
+              <article key={dimension.name} className="studio-tile p-4">
+                <h4 className="font-semibold text-ink">{dimension.name}</h4>
+                <p className="mt-2 text-sm leading-6 text-muted">{dimension.description}</p>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        <section className="studio-panel p-6">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
             <div>
               <h3 className="text-xl font-semibold text-ink">内容安全规则</h3>
@@ -96,18 +108,6 @@ export default async function RulesPage() {
                   action: rule.action
                 }}
               />
-            ))}
-          </div>
-        </section>
-
-        <section className="studio-panel p-6">
-          <h3 className="text-xl font-semibold text-ink">质量评分维度</h3>
-          <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-            {qualityDimensions.map((dimension) => (
-              <article key={dimension.name} className="studio-tile p-4">
-                <h4 className="font-semibold text-ink">{dimension.name}</h4>
-                <p className="mt-2 text-sm leading-6 text-muted">{dimension.description}</p>
-              </article>
             ))}
           </div>
         </section>

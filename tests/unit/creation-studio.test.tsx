@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import type React from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { CreationStudio } from "@/app/(workspace)/create/creation-studio";
@@ -57,6 +57,30 @@ describe("creation studio", () => {
     expect(
       screen.getByRole("button", { name: "发布内容" })
     ).toBeInTheDocument();
+  });
+
+  it("shows a live countdown for the next automatic save", () => {
+    vi.useFakeTimers();
+
+    try {
+      render(<Studio prompts={prompts} canReviewContent={true} />);
+
+      expect(screen.getByText("30 秒后自动保存")).toBeInTheDocument();
+
+      act(() => {
+        vi.advanceTimersByTime(1000);
+      });
+
+      expect(screen.getByText("29 秒后自动保存")).toBeInTheDocument();
+
+      act(() => {
+        vi.advanceTimersByTime(28_000);
+      });
+
+      expect(screen.getByText("1 秒后自动保存")).toBeInTheDocument();
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it("loads a published post for editing and updates it through PATCH", async () => {

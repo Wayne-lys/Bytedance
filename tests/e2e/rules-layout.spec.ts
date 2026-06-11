@@ -1,6 +1,44 @@
 import { expect, test } from "@playwright/test";
+import bcrypt from "bcryptjs";
+import { prisma } from "../../src/lib/db";
 
-test("rules page stacks quality dimensions below long safety rules on desktop", async ({
+const adminEmail = "creator@example.com";
+const adminPassword = "Demo123456";
+
+async function ensureAdminUser() {
+  const passwordHash = await bcrypt.hash(adminPassword, 10);
+
+  await prisma.user.upsert({
+    where: { email: adminEmail },
+    update: {
+      passwordHash,
+      name: "训练营创作者",
+      role: "admin"
+    },
+    create: {
+      email: adminEmail,
+      passwordHash,
+      name: "训练营创作者",
+      role: "admin"
+    }
+  });
+}
+
+test.beforeEach(async ({ page }) => {
+  await ensureAdminUser();
+
+  const response = await page.request.post("/api/auth/login", {
+    data: {
+      type: "email",
+      email: adminEmail,
+      password: adminPassword
+    }
+  });
+
+  expect(response.status()).toBe(200);
+});
+
+test("rules page places quality dimensions above long safety rules on desktop", async ({
   page
 }) => {
   await page.setViewportSize({ width: 1600, height: 900 });
@@ -21,5 +59,5 @@ test("rules page stacks quality dimensions below long safety rules on desktop", 
 
   expect(safetyBox).not.toBeNull();
   expect(qualityBox).not.toBeNull();
-  expect(qualityBox!.y).toBeGreaterThan(safetyBox!.y + safetyBox!.height - 1);
+  expect(qualityBox!.y).toBeLessThan(safetyBox!.y);
 });
