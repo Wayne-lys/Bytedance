@@ -448,41 +448,10 @@ export function CreationStudio({
 
   async function clearCurrentDraft() {
     await runAction("clear", async () => {
-      const draftId = draft.id;
-      const nextDraft = createEmptyDraft();
-
       resetComposer();
       setDetailHref("");
       setPublishState("已清空当前草稿。");
-
-      if (!draftId) {
-        setSyncState("synced");
-        return;
-      }
-
-      if (!navigator.onLine) {
-        setSyncState("offline");
-        return;
-      }
-
-      setSyncState("syncing");
-      const response = await fetch("/api/drafts", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...nextDraft,
-          id: draftId,
-          localState: "cleared"
-        })
-      });
-      const payload = await response.json();
-
-      if (payload.ok) {
-        setSyncState("synced");
-        return;
-      }
-
-      setSyncState("offline");
+      setSyncState("synced");
     });
   }
 

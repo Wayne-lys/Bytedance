@@ -464,7 +464,7 @@ describe("creation studio", () => {
     expect(materialGrid.className).toContain("max-h-");
   });
 
-  it("clears the current draft on demand and persists the empty draft", async () => {
+  it("clears the current composer without overwriting the saved draft", async () => {
     const fetchMock = vi.fn().mockResolvedValue(
       new Response(
         JSON.stringify({
@@ -498,20 +498,73 @@ describe("creation studio", () => {
       expect(screen.getByLabelText("标题")).toHaveValue("");
     });
     expect(screen.getByLabelText("正文")).toHaveValue("");
-    expect(fetchMock).toHaveBeenCalledWith(
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("saves a new draft after clearing a previously saved draft", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            ok: true,
+            data: { draft: { id: "draft_1" } }
+          }),
+          { status: 200 }
+        )
+      )
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            ok: true,
+            data: { draft: { id: "draft_2" } }
+          }),
+          { status: 200 }
+        )
+      );
+    vi.stubGlobal("fetch", fetchMock);
+
+    render(<Studio prompts={prompts} canReviewContent={true} />);
+
+    fireEvent.change(screen.getByLabelText("标题"), {
+      target: { value: "第一篇标题" }
+    });
+    fireEvent.change(screen.getByLabelText("正文"), {
+      target: { value: "第一篇正文" }
+    });
+    fireEvent.click(screen.getByRole("button", { name: "立即保存" }));
+
+    await waitFor(() => {
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: "一键清空" }));
+
+    await waitFor(() => {
+      expect(screen.getByLabelText("标题")).toHaveValue("");
+    });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+
+    fireEvent.change(screen.getByLabelText("标题"), {
+      target: { value: "第二篇标题" }
+    });
+    fireEvent.change(screen.getByLabelText("正文"), {
+      target: { value: "第二篇正文" }
+    });
+    fireEvent.click(screen.getByRole("button", { name: "立即保存" }));
+
+    await waitFor(() => {
+      expect(fetchMock).toHaveBeenCalledTimes(2);
+    });
+    expect(fetchMock).toHaveBeenNthCalledWith(
+      2,
       "/api/drafts",
       expect.objectContaining({
         method: "POST",
-        body: expect.stringContaining('"id":"draft_1"')
+        body: expect.stringContaining('"title":"第二篇标题"')
       })
     );
-    expect(fetchMock).toHaveBeenCalledWith(
-      "/api/drafts",
-      expect.objectContaining({
-        method: "POST",
-        body: expect.stringContaining('"title":""')
-      })
-    );
+    expect(fetchMock.mock.calls[1]?.[1]?.body).not.toContain('"id":"draft_1"');
   });
 
   it("keeps an unpublished local draft when leaving and returning", async () => {
