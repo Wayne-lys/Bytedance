@@ -48,6 +48,20 @@ describe("workspace shell", () => {
     expect(screen.getByText("页面内容")).toBeInTheDocument();
   });
 
+  it("renders SVG icons for public workspace navigation items", () => {
+    render(
+      <AppShell>
+        <p>页面内容</p>
+      </AppShell>
+    );
+
+    ["首页", "创作台", "素材资产", "热点榜单"].forEach((label) => {
+      const link = screen.getByRole("link", { name: label });
+
+      expect(link.querySelector("svg[aria-hidden='true']")).not.toBeNull();
+    });
+  });
+
   it("aligns desktop sidebar and content card bottoms", () => {
     render(
       <AppShell>

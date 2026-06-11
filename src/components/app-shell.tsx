@@ -8,18 +8,29 @@ import type { Permission } from "@/features/auth/permissions";
 type NavItem = {
   label: string;
   href: string;
+  icon: NavIconName;
   requiredPermission?: Permission;
 };
 
+type NavIconName =
+  | "home"
+  | "create"
+  | "materials"
+  | "posts"
+  | "review"
+  | "rankings"
+  | "rules"
+  | "permissions";
+
 const navItems: NavItem[] = [
-  { label: "首页", href: "/" },
-  { label: "创作台", href: "/create" },
-  { label: "素材资产", href: "/materials" },
-  { label: "内容管理", href: "/posts", requiredPermission: "review_content" },
-  { label: "审核与质量", href: "/review", requiredPermission: "review_content" },
-  { label: "热点榜单", href: "/rankings" },
-  { label: "规则体系", href: "/rules", requiredPermission: "manage_rules" },
-  { label: "权限管理", href: "/permissions", requiredPermission: "manage_users" }
+  { label: "首页", href: "/", icon: "home" },
+  { label: "创作台", href: "/create", icon: "create" },
+  { label: "素材资产", href: "/materials", icon: "materials" },
+  { label: "内容管理", href: "/posts", icon: "posts", requiredPermission: "review_content" },
+  { label: "审核与质量", href: "/review", icon: "review", requiredPermission: "review_content" },
+  { label: "热点榜单", href: "/rankings", icon: "rankings" },
+  { label: "规则体系", href: "/rules", icon: "rules", requiredPermission: "manage_rules" },
+  { label: "权限管理", href: "/permissions", icon: "permissions", requiredPermission: "manage_users" }
 ];
 
 type SessionUser = {
@@ -45,6 +56,97 @@ function resolveSystemStatusLabel() {
   }
 
   return "开发调试环境";
+}
+
+function IconSvg({ children }: { children: React.ReactNode }) {
+  return (
+    <svg
+      aria-hidden="true"
+      className="size-4"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      {children}
+    </svg>
+  );
+}
+
+function NavIcon({ name }: { name: NavIconName }) {
+  switch (name) {
+    case "home":
+      return (
+        <IconSvg>
+          <path d="M4 10.5 12 4l8 6.5" />
+          <path d="M6.5 9.5V20h11V9.5" />
+          <path d="M10 20v-5h4v5" />
+        </IconSvg>
+      );
+    case "create":
+      return (
+        <IconSvg>
+          <path d="M5 19h14" />
+          <path d="M7 16.5 16.8 6.7a1.7 1.7 0 0 1 2.4 2.4L9.4 18.9 6 19.5z" />
+          <path d="m15.5 8 2.5 2.5" />
+        </IconSvg>
+      );
+    case "materials":
+      return (
+        <IconSvg>
+          <rect x="4" y="5" width="16" height="14" rx="2" />
+          <circle cx="9" cy="10" r="1.5" />
+          <path d="m4 16 4.2-4.2a1.5 1.5 0 0 1 2.1 0L13 14.5l1.4-1.4a1.5 1.5 0 0 1 2.1 0L20 16.6" />
+        </IconSvg>
+      );
+    case "posts":
+      return (
+        <IconSvg>
+          <path d="M6 4h9l3 3v13H6z" />
+          <path d="M15 4v4h4" />
+          <path d="M9 12h6" />
+          <path d="M9 16h6" />
+        </IconSvg>
+      );
+    case "review":
+      return (
+        <IconSvg>
+          <path d="M12 3 19 6v5.2c0 4.2-2.7 7.2-7 9.1-4.3-1.9-7-4.9-7-9.1V6z" />
+          <path d="m8.5 12.2 2.2 2.2 4.8-5" />
+        </IconSvg>
+      );
+    case "rankings":
+      return (
+        <IconSvg>
+          <path d="M5 19V9" />
+          <path d="M12 19V5" />
+          <path d="M19 19v-7" />
+          <path d="M4 19h16" />
+        </IconSvg>
+      );
+    case "rules":
+      return (
+        <IconSvg>
+          <path d="M7 7h10" />
+          <path d="M7 12h10" />
+          <path d="M7 17h7" />
+          <path d="m4 7 .8.8L6 6.5" />
+          <path d="m4 12 .8.8L6 11.5" />
+          <path d="m4 17 .8.8L6 16.5" />
+        </IconSvg>
+      );
+    case "permissions":
+      return (
+        <IconSvg>
+          <circle cx="9" cy="8" r="3" />
+          <path d="M4 19c.8-3 2.6-4.5 5-4.5 1.2 0 2.2.3 3 1" />
+          <path d="M15 14.5h5" />
+          <path d="M18 11.5v6" />
+        </IconSvg>
+      );
+  }
 }
 
 export function AppShell({
@@ -135,7 +237,7 @@ export function AppShell({
                   <Link
                     key={item.href}
                     href={item.href}
-                    className={`group flex min-w-28 shrink-0 items-center gap-3 rounded-md border px-3 py-2 text-sm transition lg:min-w-0 lg:py-2.5 ${
+                    className={`group flex min-w-32 shrink-0 items-center gap-2 rounded-md border px-3 py-2 text-sm transition lg:min-w-0 lg:py-2.5 ${
                       active
                         ? "border-accent bg-accent text-white shadow-crisp"
                         : "border-white/10 bg-white/[0.035] text-[#d9cec2] hover:border-white/25 hover:bg-white/[0.08] hover:text-white"
@@ -143,11 +245,21 @@ export function AppShell({
                   >
                     <span
                       aria-hidden="true"
-                      className={`text-xs ${active ? "text-white/75" : "text-[#a99686]"}`}
+                      className={`w-5 shrink-0 text-xs ${active ? "text-white/75" : "text-[#a99686]"}`}
                     >
                       {displayIndex}
                     </span>
-                    <span className="font-medium leading-5">{item.label}</span>
+                    <span
+                      aria-hidden="true"
+                      className={`flex size-7 shrink-0 items-center justify-center rounded-sm border ${
+                        active
+                          ? "border-white/25 bg-white/15 text-white"
+                          : "border-white/10 bg-white/[0.04] text-[#b7a999] group-hover:border-white/20 group-hover:text-white"
+                      }`}
+                    >
+                      <NavIcon name={item.icon} />
+                    </span>
+                    <span className="min-w-0 truncate font-medium leading-5">{item.label}</span>
                   </Link>
                 );
               })}
