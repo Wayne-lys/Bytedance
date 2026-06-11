@@ -33,7 +33,7 @@ test("creator can publish through automatic review and open the detail page", as
   await page.getByRole("button", { name: "登录" }).click();
 
   await expect(
-    page.getByRole("heading", { name: "AI 创作者内容管理平台" })
+    page.getByRole("heading", { name: "AI 内容生产与审核工作台" })
   ).toBeVisible();
 
   const workspaceNav = page.getByRole("navigation", { name: "工作区导航" });

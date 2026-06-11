@@ -109,7 +109,7 @@ describe("workspace shell", () => {
     expect(description).toHaveClass("sr-only");
   });
 
-  it("keeps a roomier header on the home page", () => {
+  it("uses an actions-only compact header on the home page", () => {
     pathnameMock = "/";
 
     render(
@@ -119,12 +119,16 @@ describe("workspace shell", () => {
     );
 
     const header = screen.getByTestId("workspace-header");
-    const heading = screen.getByRole("heading", { name: "AI 创作者工作台" });
-    const description = screen.getByText("围绕创作、审核、发布和榜单的完整演示闭环。");
+    const headerLayout = screen.getByTestId("workspace-header-layout");
+    const actions = screen.getByTestId("workspace-header-actions");
 
-    expect(header).toHaveClass("py-3");
-    expect(heading).toHaveClass("text-2xl");
-    expect(description).not.toHaveClass("sr-only");
+    expect(header).toHaveClass("py-2");
+    expect(headerLayout).toHaveClass("items-center");
+    expect(headerLayout).toHaveClass("justify-end");
+    expect(actions).toHaveClass("items-center");
+    expect(screen.queryByRole("heading", { name: "AI 创作者工作台" })).not.toBeInTheDocument();
+    expect(screen.queryByText("AI 内容工作台")).not.toBeInTheDocument();
+    expect(screen.queryByText("围绕创作、审核、发布和榜单的完整演示闭环。")).not.toBeInTheDocument();
   });
 
   it("uses a deployment-safe system status label", () => {

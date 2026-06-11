@@ -286,62 +286,42 @@ export function AppShell({
         <section className="min-w-0 rounded-lg border border-line bg-paper/80 shadow-soft lg:flex lg:h-[calc(100vh-1rem)] lg:flex-col lg:overflow-hidden">
           <header
             data-testid="workspace-header"
-            className={`shrink-0 border-b border-line bg-panel/78 px-4 backdrop-blur md:px-5 ${
-              isHomePage ? "py-3 md:py-4" : "py-2"
-            }`}
+            className="shrink-0 border-b border-line bg-panel/78 px-4 py-2 backdrop-blur md:px-5"
           >
             <div
+              data-testid="workspace-header-layout"
               className={
                 isHomePage
-                  ? "flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between"
+                  ? "flex flex-wrap items-center justify-end gap-2"
                   : "flex flex-col gap-2 md:flex-row md:items-center md:justify-between"
               }
             >
-              <div
-                className={
-                  isHomePage
-                    ? "max-w-4xl"
-                    : "flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1"
-                }
-              >
-                <p className="shrink-0 text-xs font-semibold text-accent">{eyebrow}</p>
-                <h1
-                  className={
-                    isHomePage
-                      ? "mt-2 text-2xl font-semibold leading-tight text-ink sm:text-3xl"
-                      : "min-w-0 truncate text-lg font-semibold leading-6 text-ink"
-                  }
-                >
-                  {title}
-                </h1>
-                <p
-                  className={
-                    isHomePage
-                      ? "mt-2 max-w-3xl text-sm leading-6 text-muted"
-                      : "sr-only"
-                  }
-                >
-                  {description}
-                </p>
-              </div>
+              {!isHomePage ? (
+                <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1">
+                  <p className="shrink-0 text-xs font-semibold text-accent">{eyebrow}</p>
+                  <h1 className="min-w-0 truncate text-lg font-semibold leading-6 text-ink">
+                    {title}
+                  </h1>
+                  <p className="sr-only">{description}</p>
+                </div>
+              ) : null}
 
-              <div className="flex flex-wrap items-center gap-2">
+              <div
+                data-testid="workspace-header-actions"
+                className="flex flex-wrap items-center justify-end gap-2"
+              >
                 <Link
                   href="/rankings"
-                  className={`studio-button inline-flex items-center justify-center border border-line bg-panel text-sm font-medium text-ink hover:border-accent ${
-                    isHomePage ? "h-10 px-4" : "h-9 px-3"
-                  }`}
+                  className="studio-button inline-flex h-9 items-center justify-center border border-line bg-panel px-3 text-sm font-medium text-ink hover:border-accent"
                 >
                   查看榜单
                 </Link>
                 {currentUser ? (
                   <>
                     <span
-                      className={`studio-button inline-flex items-center justify-center border border-line bg-panel text-sm font-medium text-ink ${
-                        isHomePage ? "h-10 px-4" : "h-9 px-3"
-                      }`}
+                      className="studio-button inline-flex h-9 items-center justify-center border border-line bg-panel px-3 text-sm font-medium text-ink"
                     >
-                      <span className={isHomePage ? "max-w-44 truncate" : "max-w-36 truncate"}>
+                      <span className="max-w-36 truncate">
                         {currentUser.name ?? currentUser.email ?? currentUser.phone ?? "已登录"}
                       </span>
                       {currentUser.roleLabel ? (
@@ -355,9 +335,7 @@ export function AppShell({
                       aria-label="退出登录"
                       title="退出登录"
                       onClick={() => void logout()}
-                      className={`studio-button inline-flex items-center justify-center bg-sidebar text-white shadow-crisp hover:bg-accent ${
-                        isHomePage ? "size-10" : "size-9"
-                      }`}
+                      className="studio-button inline-flex size-9 items-center justify-center bg-sidebar text-white shadow-crisp hover:bg-accent"
                     >
                       <LogoutIcon />
                     </button>
@@ -365,9 +343,7 @@ export function AppShell({
                 ) : authChecked ? (
                   <Link
                     href="/login"
-                    className={`studio-button inline-flex items-center justify-center bg-sidebar text-sm font-medium text-white shadow-crisp hover:bg-accent ${
-                      isHomePage ? "h-10 px-4" : "h-9 px-3"
-                    }`}
+                    className="studio-button inline-flex h-9 items-center justify-center bg-sidebar px-3 text-sm font-medium text-white shadow-crisp hover:bg-accent"
                   >
                     登录入口
                   </Link>
