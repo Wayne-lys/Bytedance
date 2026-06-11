@@ -59,25 +59,69 @@ describe("creation studio", () => {
     ).toBeInTheDocument();
   });
 
-  it("shows a live countdown for the next automatic save", () => {
+  it("autosaves once after 30 seconds without further editing", async () => {
     vi.useFakeTimers();
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          ok: true,
+          data: { draft: { id: "draft_1" } }
+        }),
+        { status: 200 }
+      )
+    );
+    vi.stubGlobal("fetch", fetchMock);
 
     try {
+      const advanceSeconds = async (seconds: number) => {
+        for (let second = 0; second < seconds; second += 1) {
+          await act(async () => {
+            vi.advanceTimersByTime(1000);
+            await Promise.resolve();
+          });
+        }
+      };
+
       render(<Studio prompts={prompts} canReviewContent={true} />);
 
-      expect(screen.getByText("30 秒后自动保存")).toBeInTheDocument();
+      expect(screen.getByText("自动保存待命")).toBeInTheDocument();
 
-      act(() => {
-        vi.advanceTimersByTime(1000);
+      fireEvent.change(screen.getByLabelText("标题"), {
+        target: { value: "第一版标题" }
       });
 
-      expect(screen.getByText("29 秒后自动保存")).toBeInTheDocument();
+      expect(screen.getByText("30 秒无操作后自动保存")).toBeInTheDocument();
 
-      act(() => {
-        vi.advanceTimersByTime(28_000);
+      await advanceSeconds(1);
+
+      expect(screen.getByText("29 秒无操作后自动保存")).toBeInTheDocument();
+
+      fireEvent.change(screen.getByLabelText("标题"), {
+        target: { value: "第二版标题" }
       });
 
-      expect(screen.getByText("1 秒后自动保存")).toBeInTheDocument();
+      expect(screen.getByText("30 秒无操作后自动保存")).toBeInTheDocument();
+
+      await advanceSeconds(29);
+
+      expect(fetchMock).not.toHaveBeenCalled();
+
+      await advanceSeconds(1);
+
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+      expect(fetchMock).toHaveBeenCalledWith(
+        "/api/drafts",
+        expect.objectContaining({
+          method: "POST",
+          body: expect.stringContaining("第二版标题")
+        })
+      );
+
+      expect(screen.getByText("已自动保存")).toBeInTheDocument();
+
+      await advanceSeconds(31);
+
+      expect(fetchMock).toHaveBeenCalledTimes(1);
     } finally {
       vi.useRealTimers();
     }

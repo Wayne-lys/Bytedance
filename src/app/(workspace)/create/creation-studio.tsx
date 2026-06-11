@@ -98,6 +98,20 @@ function createEmptyDraft(): DraftState {
   return normalizeDraft(null);
 }
 
+function autosaveKeyFromDraft(draft: DraftState) {
+  return JSON.stringify({
+    coverUrl: draft.coverUrl ?? null,
+    materialIds: draft.materialIds,
+    topic: draft.topic,
+    audience: draft.audience,
+    platform: draft.platform,
+    style: draft.style,
+    title: draft.title,
+    body: draft.body,
+    tags: draft.tags
+  });
+}
+
 const fieldRows: Array<[keyof DraftState, string, string]> = [
   ["topic", "选题", "例如：城市咖啡店的低糖点单方式"],
   ["audience", "目标受众", "例如：城市白领"],
@@ -230,12 +244,12 @@ export function CreationStudio({
   const [publishState, setPublishState] = useState("");
   const [detailHref, setDetailHref] = useState("");
   const [activeAction, setActiveAction] = useState<ActiveAction | null>(null);
-  const [autosaveSecondsLeft, setAutosaveSecondsLeft] = useState(
-    AUTOSAVE_INTERVAL_SECONDS
-  );
+  const [autosaveSecondsLeft, setAutosaveSecondsLeft] = useState<number | null>(null);
+  const [hasAutosavedDraft, setHasAutosavedDraft] = useState(false);
   const [generationGuidance, setGenerationGuidance] =
     useState<GenerationGuidance | null>(null);
   const storageReadyRef = useRef(false);
+  const lastSavedDraftKeyRef = useRef(autosaveKeyFromDraft(draft));
   const [promptList, setPromptList] = useState(prompts);
   const [selectedPromptId, setSelectedPromptId] = useState(prompts[0]?.id ?? "");
   const selectedPrompt = useMemo(
@@ -304,12 +318,14 @@ export function CreationStudio({
 
     if (cached) {
       const cachedDraft = JSON.parse(cached) as DraftState;
-
-      storageReadyRef.current = false;
-      setDraft({
+      const normalizedCachedDraft = {
         ...normalizeDraft(cachedDraft),
         tags: removeTopicTag(cachedDraft.tags, cachedDraft.topic)
-      });
+      };
+
+      storageReadyRef.current = false;
+      lastSavedDraftKeyRef.current = autosaveKeyFromDraft(normalizedCachedDraft);
+      setDraft(normalizedCachedDraft);
       return;
     }
 
@@ -347,6 +363,9 @@ export function CreationStudio({
     const nextDraft = createEmptyDraft();
 
     storageReadyRef.current = true;
+    lastSavedDraftKeyRef.current = autosaveKeyFromDraft(nextDraft);
+    setAutosaveSecondsLeft(null);
+    setHasAutosavedDraft(false);
     setDraft(nextDraft);
     window.localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(nextDraft));
     setReview(null);
@@ -390,8 +409,11 @@ export function CreationStudio({
   const saveCurrentDraft = useCallback(async (nextState = "synced") => {
     if (!navigator.onLine) {
       setSyncState("offline");
+      setAutosaveSecondsLeft(null);
       return;
     }
+
+    const savedDraftKey = autosaveKeyFromDraft(draft);
 
     setSyncState("syncing");
     const response = await fetch("/api/drafts", {
@@ -405,6 +427,9 @@ export function CreationStudio({
     const payload = await response.json();
 
     if (payload.ok) {
+      lastSavedDraftKeyRef.current = savedDraftKey;
+      setAutosaveSecondsLeft(null);
+      setHasAutosavedDraft(true);
       setDraft((current) => ({ ...current, id: payload.data.draft.id }));
       setSyncState("synced");
     }
@@ -671,39 +696,57 @@ export function CreationStudio({
   }
 
   useEffect(() => {
+    const currentDraftKey = autosaveKeyFromDraft(draft);
+
+    if (currentDraftKey === lastSavedDraftKeyRef.current) {
+      return;
+    }
+
+    setHasAutosavedDraft(false);
     setAutosaveSecondsLeft(AUTOSAVE_INTERVAL_SECONDS);
   }, [draft]);
 
   useEffect(() => {
-    const timer = window.setInterval(() => {
-      setAutosaveSecondsLeft((current) => Math.max(current - 1, 0));
-    }, 1_000);
     const handleOnline = () => {
-      setAutosaveSecondsLeft(AUTOSAVE_INTERVAL_SECONDS);
-      void saveCurrentDraft();
+      if (autosaveKeyFromDraft(draft) !== lastSavedDraftKeyRef.current) {
+        void saveCurrentDraft();
+      }
     };
 
     window.addEventListener("online", handleOnline);
 
     return () => {
-      window.clearInterval(timer);
       window.removeEventListener("online", handleOnline);
     };
-  }, [saveCurrentDraft]);
+  }, [draft, saveCurrentDraft]);
 
   useEffect(() => {
-    if (autosaveSecondsLeft > 0) {
+    if (autosaveSecondsLeft === null) {
       return;
     }
 
-    setAutosaveSecondsLeft(AUTOSAVE_INTERVAL_SECONDS);
-    void saveCurrentDraft();
+    const timer = window.setTimeout(() => {
+      if (autosaveSecondsLeft <= 1) {
+        void saveCurrentDraft();
+        return;
+      }
+
+      setAutosaveSecondsLeft(autosaveSecondsLeft - 1);
+    }, 1_000);
+
+    return () => window.clearTimeout(timer);
   }, [autosaveSecondsLeft, saveCurrentDraft]);
 
   const needsRewrite = Boolean(
     review && review.moderation.riskLevel !== "safe"
   );
   const isActionBusy = activeAction !== null;
+  const autosaveStatusLabel =
+    autosaveSecondsLeft === null
+      ? hasAutosavedDraft
+        ? "已自动保存"
+        : "自动保存待命"
+      : `${autosaveSecondsLeft} 秒无操作后自动保存`;
 
   return (
     <section className="grid gap-5 xl:h-full xl:min-h-0 xl:flex-1 xl:grid-cols-[minmax(0,1fr)_390px] xl:items-stretch xl:overflow-hidden">
@@ -718,9 +761,7 @@ export function CreationStudio({
             </div>
             <div className="flex flex-wrap items-center gap-2">
               <OfflineSyncIndicator state={syncState} />
-              <StatusBadge tone="neutral">
-                {autosaveSecondsLeft} 秒后自动保存
-              </StatusBadge>
+              <StatusBadge tone="neutral">{autosaveStatusLabel}</StatusBadge>
             </div>
           </div>
         </div>
