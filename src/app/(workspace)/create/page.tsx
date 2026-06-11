@@ -90,8 +90,15 @@ export default async function CreatePage({ searchParams }: CreatePageProps) {
     initialDraft = draftFromRecord(await getLatestDraft(currentUser.id));
   }
 
+  const editorSessionKey = searchParams?.postId
+    ? `post:${searchParams.postId}`
+    : searchParams?.draftId
+      ? `draft:${searchParams.draftId}`
+      : "continue";
+
   return (
     <CreationStudio
+      key={editorSessionKey}
       prompts={prompts}
       materials={materials}
       canReviewContent={canReviewContent}

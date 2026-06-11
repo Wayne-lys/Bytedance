@@ -567,6 +567,8 @@ describe("creation studio", () => {
     expect(screen.getByLabelText("标题")).toHaveValue("当前草稿标题");
     expect(screen.getByLabelText("正文")).toHaveValue("当前草稿正文");
     expect(screen.queryByDisplayValue("缓存里的标题")).not.toBeInTheDocument();
+    expect(window.localStorage.getItem("creator-draft")).toContain("缓存里的标题");
+    expect(window.localStorage.getItem("creator-draft")).not.toContain("当前草稿标题");
   });
 
   it("fills the shell content height without leaving a bottom gap", () => {

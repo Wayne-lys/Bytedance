@@ -258,6 +258,7 @@ export function CreationStudio({
     () => promptList.find((prompt) => prompt.id === selectedPromptId) ?? promptList[0],
     [promptList, selectedPromptId]
   );
+  const shouldUseLocalDraftCache = !editingPostId && !preferInitialDraft;
   const usableMaterials = useMemo(
     () => materials.filter((material) => material.compliance !== "blocked"),
     [materials]
@@ -311,7 +312,7 @@ export function CreationStudio({
   }, [promptList, selectedPromptId]);
 
   useEffect(() => {
-    if (editingPostId || preferInitialDraft) {
+    if (!shouldUseLocalDraftCache) {
       const routedDraft = normalizeDraft(initialDraft);
 
       storageReadyRef.current = true;
@@ -338,10 +339,10 @@ export function CreationStudio({
     }
 
     storageReadyRef.current = true;
-  }, [editingPostId, initialDraft, preferInitialDraft]);
+  }, [initialDraft, shouldUseLocalDraftCache]);
 
   useEffect(() => {
-    if (editingPostId) {
+    if (!shouldUseLocalDraftCache) {
       return;
     }
 
@@ -351,7 +352,7 @@ export function CreationStudio({
     }
 
     window.localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(draft));
-  }, [draft, editingPostId]);
+  }, [draft, shouldUseLocalDraftCache]);
 
   async function runAction(action: ActiveAction, task: () => Promise<void>) {
     if (activeAction) {
@@ -375,7 +376,9 @@ export function CreationStudio({
     setAutosaveSecondsLeft(null);
     setHasAutosavedDraft(false);
     setDraft(nextDraft);
-    window.localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(nextDraft));
+    if (shouldUseLocalDraftCache) {
+      window.localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(nextDraft));
+    }
     setReview(null);
     setReviewedDraftKey("");
     setGenerationGuidance(null);
