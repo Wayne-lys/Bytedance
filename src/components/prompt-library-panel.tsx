@@ -265,20 +265,25 @@ export function PromptLibraryPanel({
         </form>
       ) : null}
 
-      <PromptPicker
-        prompts={filteredPrompts}
-        selectedPromptId={selectedPromptId}
-        disabled={disabled}
-        onSelect={onSelect}
-        onEdit={startEditing}
-        onDelete={setPromptToDelete}
-      />
+      <div
+        data-testid="prompt-library-scroll"
+        className="max-h-[560px] overflow-y-auto pr-1"
+      >
+        <PromptPicker
+          prompts={filteredPrompts}
+          selectedPromptId={selectedPromptId}
+          disabled={disabled}
+          onSelect={onSelect}
+          onEdit={startEditing}
+          onDelete={setPromptToDelete}
+        />
 
-      {filteredPrompts.length === 0 ? (
-        <p className="rounded-md border border-line bg-panel-muted px-3 py-4 text-center text-sm font-semibold text-muted">
-          没有找到匹配的 Prompt
-        </p>
-      ) : null}
+        {filteredPrompts.length === 0 ? (
+          <p className="rounded-md border border-line bg-panel-muted px-3 py-4 text-center text-sm font-semibold text-muted">
+            没有找到匹配的 Prompt
+          </p>
+        ) : null}
+      </div>
 
       {promptToDelete ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-sidebar/70 px-4 backdrop-blur-sm">

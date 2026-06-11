@@ -41,6 +41,49 @@ describe("post feedback panel", () => {
     expect(screen.getByText("反馈分 18")).toBeInTheDocument();
   });
 
+  it("uses icon-only like labels while keeping accessible names", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(
+        new Response(
+          JSON.stringify({
+            ok: true,
+            data: {
+              metric: {
+                likes: 3,
+                feedbackScore: 18
+              }
+            }
+          }),
+          { status: 200 }
+        )
+      )
+    );
+
+    render(
+      <PostFeedbackPanel
+        postId="post_1"
+        initialLikes={2}
+        initialFeedbackScore={12}
+        initialComments={[]}
+      />
+    );
+
+    const likeButton = screen.getByRole("button", { name: "点赞 2" });
+
+    expect(likeButton.querySelector("svg[aria-hidden='true']")).not.toBeNull();
+    expect(likeButton).toHaveTextContent("2");
+    expect(likeButton).not.toHaveTextContent("点赞");
+
+    fireEvent.click(likeButton);
+
+    const likedButton = await screen.findByRole("button", { name: "已点赞 3" });
+
+    expect(likedButton.querySelector("svg[aria-hidden='true']")).not.toBeNull();
+    expect(likedButton).toHaveTextContent("3");
+    expect(likedButton).not.toHaveTextContent("已点赞");
+  });
+
   it("adds a submitted comment to the visible comment list", async () => {
     vi.stubGlobal(
       "fetch",

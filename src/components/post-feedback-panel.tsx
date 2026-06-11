@@ -18,6 +18,43 @@ function formatDate(value: Date | string) {
   }).format(new Date(value));
 }
 
+function LikeIcon({ filled }: { filled: boolean }) {
+  return (
+    <svg
+      aria-hidden="true"
+      className="size-4"
+      viewBox="0 0 24 24"
+      fill={filled ? "currentColor" : "none"}
+      stroke="currentColor"
+      strokeWidth="1.9"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M7.2 10.2v9.1" />
+      <path d="M7.2 10.2 11.7 4c.8-1.1 2.5-.5 2.5.9v3.4h4.2c1.4 0 2.5 1.2 2.2 2.6l-1.1 5.4a3.6 3.6 0 0 1-3.5 2.9H6.2a2.2 2.2 0 0 1-2.2-2.2v-4.6a2.2 2.2 0 0 1 2.2-2.2z" />
+    </svg>
+  );
+}
+
+function CommentIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      className="size-4"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.9"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M5 6.5A3.5 3.5 0 0 1 8.5 3h7A3.5 3.5 0 0 1 19 6.5v5A3.5 3.5 0 0 1 15.5 15H11l-4.5 4v-4A3.5 3.5 0 0 1 5 11.5z" />
+      <path d="M9 8h6" />
+      <path d="M9 11h4" />
+    </svg>
+  );
+}
+
 export function PostFeedbackPanel({
   postId,
   initialLikes,
@@ -116,12 +153,20 @@ export function PostFeedbackPanel({
           type="button"
           onClick={() => void submitLike()}
           disabled={pendingAction !== null || liked}
-          className="studio-button inline-flex h-10 items-center justify-center border border-line bg-panel px-4 text-sm font-semibold text-ink hover:border-accent disabled:cursor-not-allowed disabled:opacity-60"
+          aria-label={liked ? `已点赞 ${likes}` : `点赞 ${likes}`}
+          aria-pressed={liked}
+          className={`studio-button inline-flex h-10 items-center justify-center gap-2 border px-4 text-sm font-semibold hover:border-accent disabled:cursor-not-allowed disabled:opacity-60 ${
+            liked
+              ? "border-accent/40 bg-accent/10 text-accent"
+              : "border-line bg-panel text-ink"
+          }`}
         >
-          {liked ? `已点赞 ${likes}` : `点赞 ${likes}`}
+          <LikeIcon filled={liked} />
+          <span aria-hidden="true">{likes}</span>
         </button>
         <span className="inline-flex h-10 items-center rounded-md border border-line bg-panel-muted px-3 text-sm text-muted">
-          评论 {comments.length}
+          <CommentIcon />
+          <span className="ml-2">评论 {comments.length}</span>
         </span>
       </div>
 

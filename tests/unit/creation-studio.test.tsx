@@ -667,6 +667,29 @@ describe("creation studio", () => {
     expect(screen.getByRole("button", { name: /选择/ })).toBeDisabled();
   });
 
+  it("keeps prompt cards in an internal scroll rail", () => {
+    const longPromptList = Array.from({ length: 12 }, (_, index) => ({
+      id: `prompt_${index + 1}`,
+      name: `Prompt 模板 ${index + 1}`,
+      scenario: "头条",
+      content: "生成信息密度高、结构清晰的图文内容。",
+      variables: "topic,audience,platform"
+    }));
+
+    render(
+      <Studio
+        prompts={longPromptList}
+        canReviewContent={true}
+      />
+    );
+
+    const promptScrollRail = screen.getByTestId("prompt-library-scroll");
+
+    expect(promptScrollRail).toHaveClass("max-h-[560px]");
+    expect(promptScrollRail).toHaveClass("overflow-y-auto");
+    expect(promptScrollRail).toHaveTextContent("Prompt 模板 12");
+  });
+
   it("locks action buttons and shows a spinner while automatic review is pending", async () => {
     const pendingReview = new Promise<Response>(() => undefined);
     const fetchMock = vi.fn().mockReturnValue(pendingReview);

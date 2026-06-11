@@ -480,28 +480,49 @@ function RankingDetailView({
             </div>
 
             <aside className="border-t border-line bg-panel-muted p-6 lg:border-l lg:border-t-0">
-              <p className="text-sm font-semibold text-accent">内容信息</p>
-              <div className="mt-5 divide-y divide-line/80">
-                {[
-                  ["发布时间", formatDate(post.publishedAt)],
-                  ["阅读次数", `${formatNumber(readCount)} 次`],
-                  ["点赞数量", `${formatNumber(post.rankingMetric?.likes)} 次`],
-                  ["评论数量", `${formatNumber(post.comments.length)} 条`],
-                  ["审核状态", formatRiskLevel(post.moderationResult?.riskLevel)],
-                  ["素材数量", `${mediaCount} 个`],
-                  ["发布者", post.author.name]
-                ].map(([label, value]) => (
-                  <div
-                    key={label}
-                    className="flex items-baseline justify-between gap-4 py-4"
-                  >
-                    <span className="text-sm text-muted">{label}</span>
-                    <span className="text-right text-base font-semibold leading-6 text-ink">
-                      {value}
+              <details
+                data-testid="content-info-panel"
+                className="group rounded-md border border-line bg-panel/70"
+              >
+                <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-4 py-3 text-left [&::-webkit-details-marker]:hidden">
+                  <span>
+                    <span className="text-sm font-semibold text-accent">
+                      内容信息
                     </span>
-                  </div>
-                ))}
-              </div>
+                    <span className="mt-1 block text-xs leading-5 text-muted">
+                      发布时间、阅读、互动、审核与素材记录
+                    </span>
+                  </span>
+                  <span className="shrink-0 rounded-sm border border-line bg-panel-muted px-2.5 py-1 text-xs font-semibold text-muted">
+                    <span className="group-open:hidden">展开信息</span>
+                    <span className="hidden group-open:inline">收起信息</span>
+                  </span>
+                </summary>
+
+                <div className="divide-y divide-line/80 border-t border-line px-4">
+                  {[
+                    ["发布时间", formatDate(post.publishedAt)],
+                    ["阅读次数", `${formatNumber(readCount)} 次`],
+                    ["点赞数量", `${formatNumber(post.rankingMetric?.likes)} 次`],
+                    ["评论数量", `${formatNumber(post.comments.length)} 条`],
+                    ["审核状态", formatRiskLevel(post.moderationResult?.riskLevel)],
+                    ["素材数量", `${mediaCount} 个`],
+                    ["发布者", post.author.name]
+                  ].map(([label, value]) => (
+                    <div
+                      key={label}
+                      className="grid gap-1 py-3 sm:grid-cols-[76px_minmax(0,1fr)] sm:items-baseline"
+                    >
+                      <span className="text-xs font-medium text-muted">
+                        {label}
+                      </span>
+                      <span className="text-left text-sm font-semibold leading-6 text-ink sm:text-right">
+                        {value}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </details>
             </aside>
           </div>
         </section>

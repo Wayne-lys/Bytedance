@@ -62,6 +62,18 @@ describe("workspace shell", () => {
     });
   });
 
+  it("does not render numeric prefixes before sidebar navigation labels", () => {
+    render(
+      <AppShell>
+        <p>页面内容</p>
+      </AppShell>
+    );
+
+    expect(screen.queryByText("00")).not.toBeInTheDocument();
+    expect(screen.queryByText("01")).not.toBeInTheDocument();
+    expect(screen.queryByText("02")).not.toBeInTheDocument();
+  });
+
   it("aligns desktop sidebar and content card bottoms", () => {
     render(
       <AppShell>

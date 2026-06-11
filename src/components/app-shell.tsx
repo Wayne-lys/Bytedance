@@ -229,26 +229,19 @@ export function AppShell({
             </Link>
 
             <nav className="flex gap-2 overflow-x-auto border-b border-white/10 p-2 sm:p-3 lg:flex-1 lg:flex-col lg:overflow-visible lg:border-b-0" aria-label="工作区导航">
-              {visibleNavItems.map((item, visibleIndex) => {
+              {visibleNavItems.map((item) => {
                 const active = pathname === item.href;
-                const displayIndex = visibleIndex.toString().padStart(2, "0");
 
                 return (
                   <Link
                     key={item.href}
                     href={item.href}
-                    className={`group flex min-w-32 shrink-0 items-center gap-2 rounded-md border px-3 py-2 text-sm transition lg:min-w-0 lg:py-2.5 ${
+                    className={`group flex min-w-28 shrink-0 items-center gap-3 rounded-md border px-3 py-2 text-sm transition lg:min-w-0 lg:py-2.5 ${
                       active
                         ? "border-accent bg-accent text-white shadow-crisp"
                         : "border-white/10 bg-white/[0.035] text-[#d9cec2] hover:border-white/25 hover:bg-white/[0.08] hover:text-white"
                     }`}
                   >
-                    <span
-                      aria-hidden="true"
-                      className={`w-5 shrink-0 text-xs ${active ? "text-white/75" : "text-[#a99686]"}`}
-                    >
-                      {displayIndex}
-                    </span>
                     <span
                       aria-hidden="true"
                       className={`flex size-7 shrink-0 items-center justify-center rounded-sm border ${
