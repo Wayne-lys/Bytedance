@@ -77,10 +77,12 @@ export default async function CreatePage({ searchParams }: CreatePageProps) {
     }
   } else if (currentUser && searchParams?.draftId) {
     const draft = await prisma.draft.findFirst({
-      where: {
-        id: searchParams.draftId,
-        authorId: currentUser.id
-      }
+      where: canReviewContent
+        ? { id: searchParams.draftId }
+        : {
+            id: searchParams.draftId,
+            authorId: currentUser.id
+          }
     });
 
     initialDraft = draftFromRecord(draft);
@@ -95,6 +97,7 @@ export default async function CreatePage({ searchParams }: CreatePageProps) {
       canReviewContent={canReviewContent}
       initialDraft={initialDraft}
       editingPostId={editingPostId}
+      preferInitialDraft={Boolean(searchParams?.draftId || searchParams?.postId)}
     />
   );
 }

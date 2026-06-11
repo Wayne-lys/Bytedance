@@ -537,6 +537,38 @@ describe("creation studio", () => {
     expect(screen.getByLabelText("正文")).toHaveValue("未发布正文");
   });
 
+  it("keeps an explicit draft from the route instead of replacing it with local cache", () => {
+    window.localStorage.setItem(
+      "creator-draft",
+      JSON.stringify({
+        id: "cached_draft",
+        title: "缓存里的标题",
+        body: "缓存里的正文",
+        tags: "",
+        materialIds: []
+      })
+    );
+
+    render(
+      <Studio
+        prompts={prompts}
+        canReviewContent={true}
+        preferInitialDraft={true}
+        initialDraft={{
+          id: "route_draft",
+          title: "当前草稿标题",
+          body: "当前草稿正文",
+          tags: "当前",
+          platform: "头条"
+        }}
+      />
+    );
+
+    expect(screen.getByLabelText("标题")).toHaveValue("当前草稿标题");
+    expect(screen.getByLabelText("正文")).toHaveValue("当前草稿正文");
+    expect(screen.queryByDisplayValue("缓存里的标题")).not.toBeInTheDocument();
+  });
+
   it("fills the shell content height without leaving a bottom gap", () => {
     const { container } = render(
       <Studio prompts={prompts} canReviewContent={true} />

@@ -229,13 +229,15 @@ export function CreationStudio({
   materials = [],
   canReviewContent = false,
   initialDraft,
-  editingPostId = null
+  editingPostId = null,
+  preferInitialDraft = false
 }: {
   prompts: PromptTemplate[];
   materials?: MaterialOption[];
   canReviewContent?: boolean;
   initialDraft?: Partial<DraftState> | null;
   editingPostId?: string | null;
+  preferInitialDraft?: boolean;
 }) {
   const [draft, setDraft] = useState<DraftState>(() => normalizeDraft(initialDraft));
   const [syncState, setSyncState] = useState("synced");
@@ -309,8 +311,14 @@ export function CreationStudio({
   }, [promptList, selectedPromptId]);
 
   useEffect(() => {
-    if (editingPostId) {
+    if (editingPostId || preferInitialDraft) {
+      const routedDraft = normalizeDraft(initialDraft);
+
       storageReadyRef.current = true;
+      lastSavedDraftKeyRef.current = autosaveKeyFromDraft(routedDraft);
+      setAutosaveSecondsLeft(null);
+      setHasAutosavedDraft(false);
+      setDraft(routedDraft);
       return;
     }
 
@@ -330,7 +338,7 @@ export function CreationStudio({
     }
 
     storageReadyRef.current = true;
-  }, [editingPostId]);
+  }, [editingPostId, initialDraft, preferInitialDraft]);
 
   useEffect(() => {
     if (editingPostId) {
