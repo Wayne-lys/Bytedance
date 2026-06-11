@@ -105,6 +105,7 @@ test("content detail returns to rankings when opened from rankings", async ({
   const contentInfo = page.getByTestId("content-info-panel");
 
   await expect(contentInfo).toHaveCount(1);
+  await expect(contentInfo.locator("xpath=ancestor::aside")).toHaveCount(0);
   await expect(contentInfo).not.toHaveAttribute("open", "");
   await expect(contentInfo.getByText("发布时间", { exact: true })).toBeHidden();
 

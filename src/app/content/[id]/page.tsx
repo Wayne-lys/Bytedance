@@ -458,28 +458,10 @@ function RankingDetailView({
             </div>
           </header>
 
-          <div className="grid lg:grid-cols-[minmax(0,1fr)_280px]">
-            <div className="p-6 sm:p-8">
-              <PostMediaGallery post={post} className="mb-8" />
+          <div className="p-6 sm:p-8">
+            <PostMediaGallery post={post} className="mb-6" />
 
-              <p className="text-sm font-semibold text-accent">正文内容</p>
-              <div className="mt-4 max-w-4xl whitespace-pre-wrap text-lg leading-9 text-ink">
-                {post.body}
-              </div>
-
-              <div className="mt-8 flex flex-wrap gap-2">
-                {post.tags.map((tag) => (
-                  <span
-                    key={tag}
-                    className="rounded-md border border-line bg-panel-muted px-3 py-1.5 text-sm text-muted"
-                  >
-                    #{tag}
-                  </span>
-                ))}
-              </div>
-            </div>
-
-            <aside className="border-t border-line bg-panel-muted p-6 lg:border-l lg:border-t-0">
+            <div className="mb-8 max-w-4xl">
               <details
                 data-testid="content-info-panel"
                 className="group rounded-md border border-line bg-panel/70"
@@ -523,7 +505,23 @@ function RankingDetailView({
                   ))}
                 </div>
               </details>
-            </aside>
+            </div>
+
+            <p className="text-sm font-semibold text-accent">正文内容</p>
+            <div className="mt-4 max-w-4xl whitespace-pre-wrap text-lg leading-9 text-ink">
+              {post.body}
+            </div>
+
+            <div className="mt-8 flex flex-wrap gap-2">
+              {post.tags.map((tag) => (
+                <span
+                  key={tag}
+                  className="rounded-md border border-line bg-panel-muted px-3 py-1.5 text-sm text-muted"
+                >
+                  #{tag}
+                </span>
+              ))}
+            </div>
           </div>
         </section>
 
