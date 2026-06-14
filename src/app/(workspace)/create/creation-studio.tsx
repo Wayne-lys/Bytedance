@@ -587,7 +587,7 @@ export function CreationStudio({
             style: draft.style,
             body: draft.body,
             materials: selectedMaterialNames,
-            size: "1024x1024"
+            size: "1920x1920"
           })
         });
         const payload = await response.json();

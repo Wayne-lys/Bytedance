@@ -37,35 +37,27 @@ export class ExternalImageProviderError extends Error {
   }
 }
 
-type ImageSize =
-  | "auto"
-  | "1024x1024"
-  | "1536x1024"
-  | "1024x1536"
-  | "256x256"
-  | "512x512"
-  | "1792x1024"
-  | "1024x1792";
+type ImageSize = `${number}x${number}`;
 
 const DEFAULT_ARK_BASE_URL = "https://ark.cn-beijing.volces.com/api/v3";
-const DEFAULT_IMAGE_SIZE: ImageSize = "1024x1024";
-const supportedImageSizes = new Set<ImageSize>([
-  "auto",
-  "1024x1024",
-  "1536x1024",
-  "1024x1536",
-  "256x256",
-  "512x512",
-  "1792x1024",
-  "1024x1792"
-]);
+const DEFAULT_IMAGE_SIZE: ImageSize = "1920x1920";
+const MIN_ARK_IMAGE_PIXELS = 3_686_400;
 
 function firstNonEmpty(...values: Array<string | undefined>) {
   return values.find((value) => value && value.trim().length > 0);
 }
 
 function normalizeImageSize(size?: string): ImageSize {
-  return supportedImageSizes.has(size as ImageSize)
+  const match = size?.match(/^(\d+)x(\d+)$/);
+
+  if (!match) {
+    return DEFAULT_IMAGE_SIZE;
+  }
+
+  const width = Number(match[1]);
+  const height = Number(match[2]);
+
+  return width * height >= MIN_ARK_IMAGE_PIXELS
     ? (size as ImageSize)
     : DEFAULT_IMAGE_SIZE;
 }
@@ -196,10 +188,13 @@ function createOpenAiCompatibleImageProvider(config: ImageProviderConfig): Image
           apiKey: config.apiKey,
           baseURL: config.baseUrl
         });
+        const imageSize = normalizeImageSize(input.size) as Parameters<
+          typeof client.images.generate
+        >[0]["size"];
         const response = await client.images.generate({
           model: config.model,
           prompt,
-          size: normalizeImageSize(input.size),
+          size: imageSize,
           n: 1,
           user: config.user
         });

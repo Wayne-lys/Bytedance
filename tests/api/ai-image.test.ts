@@ -113,7 +113,7 @@ describe("ai image api", () => {
     expect(imagesGenerateMock).toHaveBeenCalledWith(
       expect.objectContaining({
         model: "ep-image-test",
-        size: "1024x1024",
+        size: "1920x1920",
         n: 1
       })
     );
