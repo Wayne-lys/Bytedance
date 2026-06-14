@@ -7,6 +7,7 @@ type PostCommentView = {
   body: string;
   authorName: string;
   createdAt: Date | string;
+  canDelete?: boolean;
 };
 
 function formatDate(value: Date | string) {
@@ -72,10 +73,12 @@ export function PostFeedbackPanel({
   const [comments, setComments] = useState(initialComments);
   const [commentBody, setCommentBody] = useState("");
   const [pendingAction, setPendingAction] = useState<"like" | "comment" | null>(null);
+  const [deletingCommentId, setDeletingCommentId] = useState<string | null>(null);
   const [message, setMessage] = useState("");
+  const isBusy = pendingAction !== null || deletingCommentId !== null;
 
   async function submitLike() {
-    if (pendingAction || liked) {
+    if (isBusy || liked) {
       return;
     }
 
@@ -107,7 +110,7 @@ export function PostFeedbackPanel({
   async function submitComment() {
     const body = commentBody.trim();
 
-    if (pendingAction || !body) {
+    if (isBusy || !body) {
       return;
     }
 
@@ -136,6 +139,35 @@ export function PostFeedbackPanel({
     }
   }
 
+  async function deleteComment(comment: PostCommentView) {
+    if (isBusy || !comment.canDelete) {
+      return;
+    }
+
+    setDeletingCommentId(comment.id);
+    setMessage("");
+
+    try {
+      const response = await fetch(`/api/posts/${postId}/comments`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ commentId: comment.id })
+      });
+      const payload = await response.json();
+
+      if (!payload.ok) {
+        throw new Error(payload.error ?? "删除评论失败");
+      }
+
+      setComments((current) => current.filter((item) => item.id !== comment.id));
+      setFeedbackScore(payload.data.metric.feedbackScore);
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "删除评论失败");
+    } finally {
+      setDeletingCommentId(null);
+    }
+  }
+
   return (
     <section className="studio-panel p-5" data-testid="post-feedback-panel">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -152,7 +184,7 @@ export function PostFeedbackPanel({
         <button
           type="button"
           onClick={() => void submitLike()}
-          disabled={pendingAction !== null || liked}
+          disabled={isBusy || liked}
           aria-label={liked ? `已点赞 ${likes}` : `点赞 ${likes}`}
           aria-pressed={liked}
           className={`studio-button inline-flex h-10 items-center justify-center gap-2 border px-4 text-sm font-semibold hover:border-accent disabled:cursor-not-allowed disabled:opacity-60 ${
@@ -175,7 +207,7 @@ export function PostFeedbackPanel({
           value={commentBody}
           onChange={(event) => setCommentBody(event.target.value)}
           placeholder="写下你的看法"
-          disabled={pendingAction !== null}
+          disabled={isBusy}
           className="studio-input min-h-24 w-full p-3 text-sm leading-6 disabled:cursor-not-allowed disabled:bg-panel-muted/70"
         />
         <div className="flex flex-wrap items-center justify-between gap-3">
@@ -185,7 +217,7 @@ export function PostFeedbackPanel({
           <button
             type="button"
             onClick={() => void submitComment()}
-            disabled={pendingAction !== null || !commentBody.trim()}
+            disabled={isBusy || !commentBody.trim()}
             className="studio-button inline-flex h-10 items-center justify-center bg-sidebar px-4 text-sm font-semibold text-white hover:bg-accent disabled:cursor-not-allowed disabled:opacity-60"
           >
             {pendingAction === "comment" ? "发布中" : "发表评论"}
@@ -214,7 +246,20 @@ export function PostFeedbackPanel({
                 <p className="text-sm font-semibold text-ink">
                   {comment.authorName}
                 </p>
-                <p className="text-xs text-muted">{formatDate(comment.createdAt)}</p>
+                <div className="flex items-center gap-2">
+                  <p className="text-xs text-muted">{formatDate(comment.createdAt)}</p>
+                  {comment.canDelete ? (
+                    <button
+                      type="button"
+                      aria-label={`删除评论 ${comment.body}`}
+                      disabled={isBusy}
+                      onClick={() => void deleteComment(comment)}
+                      className="studio-button h-7 border border-accent/30 bg-panel px-2 text-xs font-semibold text-accent hover:bg-accent hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      {deletingCommentId === comment.id ? "删除中" : "删除"}
+                    </button>
+                  ) : null}
+                </div>
               </div>
               <p className="mt-2 text-sm leading-6 text-muted">{comment.body}</p>
             </article>

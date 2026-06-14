@@ -4,9 +4,11 @@ import { PostDistributionPanel } from "@/components/post-distribution-panel";
 import { QualityScoreCard } from "@/components/quality-score-card";
 import { StatusBadge } from "@/components/status-badge";
 import { getPostDetail } from "@/features/posts/post-service";
+import { getCurrentUser } from "@/lib/auth";
 
 type PostDetail = NonNullable<Awaited<ReturnType<typeof getPostDetail>>>;
 type RankingDetailType = "hot" | "latest" | "recommended";
+type FeedbackComment = PostDetail["comments"][number] & { canDelete: boolean };
 
 const rankingTypeLabel: Record<RankingDetailType, string> = {
   hot: "热点榜单",
@@ -292,12 +294,19 @@ export default async function ContentDetailPage({
   params: { id: string };
   searchParams?: { from?: string; type?: string };
 }) {
-  const post = await getPostDetail(params.id, { incrementView: true });
+  const [post, currentUser] = await Promise.all([
+    getPostDetail(params.id, { incrementView: true }),
+    getCurrentUser()
+  ]);
 
   if (!post) {
     notFound();
   }
 
+  const feedbackComments = post.comments.map((comment) => ({
+    ...comment,
+    canDelete: Boolean(currentUser?.id && comment.authorId === currentUser.id)
+  }));
   const returnTarget = getReturnTarget(searchParams);
   const isRankingDetail = searchParams?.from === "rankings";
   const readCount = post.rankingMetric?.views ?? 0;
@@ -306,6 +315,7 @@ export default async function ContentDetailPage({
     return (
       <RankingDetailView
         post={post}
+        comments={feedbackComments}
         returnHref={returnTarget.href}
         rankingType={normalizeRankingType(searchParams?.type)}
       />
@@ -382,7 +392,7 @@ export default async function ContentDetailPage({
             postId={post.id}
             initialLikes={post.rankingMetric?.likes ?? 0}
             initialFeedbackScore={post.rankingMetric?.feedbackScore ?? 0}
-            initialComments={post.comments}
+            initialComments={feedbackComments}
           />
 
           <a
@@ -399,10 +409,12 @@ export default async function ContentDetailPage({
 
 function RankingDetailView({
   post,
+  comments,
   returnHref,
   rankingType
 }: {
   post: PostDetail;
+  comments: FeedbackComment[];
   returnHref: string;
   rankingType: RankingDetailType;
 }) {
@@ -576,7 +588,7 @@ function RankingDetailView({
             postId={post.id}
             initialLikes={post.rankingMetric?.likes ?? 0}
             initialFeedbackScore={post.rankingMetric?.feedbackScore ?? 0}
-            initialComments={post.comments}
+            initialComments={comments}
           />
 
           <a

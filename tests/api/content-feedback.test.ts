@@ -1,6 +1,20 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { getPostDetail } from "@/features/posts/post-service";
 import { prisma } from "@/lib/db";
+import { sessionCookieName } from "@/lib/auth";
+
+const cookieStore = vi.hoisted(() => new Map<string, string>());
+
+vi.mock("next/headers", () => ({
+  cookies: () => ({
+    set: (name: string, value: string) => cookieStore.set(name, value),
+    get: (name: string) => {
+      const value = cookieStore.get(name);
+      return value ? { value } : undefined;
+    },
+    delete: (name: string) => cookieStore.delete(name)
+  })
+}));
 
 async function ensureFeedbackAuthor() {
   return prisma.user.upsert({
@@ -9,6 +23,17 @@ async function ensureFeedbackAuthor() {
     create: {
       email: "feedback-owner@example.com",
       name: "反馈测试创作者"
+    }
+  });
+}
+
+async function ensureCommentOwner() {
+  return prisma.user.upsert({
+    where: { email: "comment-owner@example.com" },
+    update: { name: "评论作者" },
+    create: {
+      email: "comment-owner@example.com",
+      name: "评论作者"
     }
   });
 }
@@ -28,6 +53,10 @@ async function resetFeedbackData() {
   await prisma.post.deleteMany({
     where: { authorId: author.id }
   });
+  await prisma.user.deleteMany({
+    where: { email: { in: ["comment-owner@example.com", "comment-other@example.com"] } }
+  });
+  cookieStore.clear();
 
   return author;
 }
@@ -105,5 +134,76 @@ describe("content feedback api", () => {
     expect((detail as any)?.comments).toHaveLength(1);
     expect((detail as any)?.comments[0].body).toBe("这个通勤建议很实用，准备收藏试试。");
     expect(metric.feedbackScore).toBeGreaterThan(0);
+  });
+
+  it("lets users delete their own comments and refreshes feedback score", async () => {
+    const post = await createFeedbackPost();
+    const owner = await ensureCommentOwner();
+    const comment = await prisma.postComment.create({
+      data: {
+        postId: post.id,
+        authorId: owner.id,
+        authorName: owner.name,
+        body: "这条评论稍后要删除。"
+      }
+    });
+    await prisma.rankingMetric.update({
+      where: { postId: post.id },
+      data: { feedbackScore: 8 }
+    });
+    cookieStore.set(sessionCookieName(), owner.id);
+    const { DELETE } = await import("@/app/api/posts/[id]/comments/route");
+
+    const response = await DELETE(
+      new Request("http://localhost/api/posts/post-id/comments", {
+        method: "DELETE",
+        body: JSON.stringify({ commentId: comment.id })
+      }),
+      { params: { id: post.id } }
+    );
+    const payload = await response.json();
+    const deleted = await prisma.postComment.findUnique({
+      where: { id: comment.id }
+    });
+
+    expect(response.status).toBe(200);
+    expect(payload.data.deletedId).toBe(comment.id);
+    expect(payload.data.metric.feedbackScore).toBe(0);
+    expect(deleted).toBeNull();
+  });
+
+  it("prevents users from deleting someone else's comment", async () => {
+    const post = await createFeedbackPost();
+    const owner = await ensureCommentOwner();
+    const otherUser = await prisma.user.create({
+      data: {
+        email: "comment-other@example.com",
+        name: "其他读者"
+      }
+    });
+    const comment = await prisma.postComment.create({
+      data: {
+        postId: post.id,
+        authorId: owner.id,
+        authorName: owner.name,
+        body: "不能被别人删除。"
+      }
+    });
+    cookieStore.set(sessionCookieName(), otherUser.id);
+    const { DELETE } = await import("@/app/api/posts/[id]/comments/route");
+
+    const response = await DELETE(
+      new Request("http://localhost/api/posts/post-id/comments", {
+        method: "DELETE",
+        body: JSON.stringify({ commentId: comment.id })
+      }),
+      { params: { id: post.id } }
+    );
+    const stillExists = await prisma.postComment.findUnique({
+      where: { id: comment.id }
+    });
+
+    expect(response.status).toBe(404);
+    expect(stillExists).not.toBeNull();
   });
 });

@@ -308,6 +308,7 @@ export function serializePost<
     comments: post.comments.map((comment) => ({
       id: comment.id,
       body: comment.body,
+      authorId: comment.authorId,
       authorName: comment.author?.name ?? comment.authorName,
       createdAt: comment.createdAt
     })),
@@ -631,14 +632,67 @@ export async function createPostComment(id: string, body: string) {
       comment: {
         id: comment.id,
         body: comment.body,
+        authorId: comment.authorId,
         authorName: comment.authorName,
-        createdAt: comment.createdAt
+        createdAt: comment.createdAt,
+        canDelete: Boolean(currentUser?.id && comment.authorId === currentUser.id)
       },
       metric: serializeMetric(refreshedMetric)
     };
   });
 
   return result;
+}
+
+export async function deletePostComment(postId: string, commentId: string) {
+  const currentUser = await getCurrentUser();
+
+  if (!currentUser) {
+    return { status: "unauthorized" as const };
+  }
+
+  const existing = await prisma.postComment.findFirst({
+    where: {
+      id: commentId,
+      postId,
+      authorId: currentUser.id
+    },
+    select: { id: true }
+  });
+
+  if (!existing) {
+    return { status: "not_found" as const };
+  }
+
+  const result = await prisma.$transaction(async (tx) => {
+    await tx.postComment.delete({
+      where: { id: commentId }
+    });
+    const metric = await tx.rankingMetric.upsert({
+      where: { postId },
+      update: {},
+      create: { postId }
+    });
+    const comments = await tx.postComment.count({
+      where: { postId }
+    });
+    const refreshedMetric = await tx.rankingMetric.update({
+      where: { postId },
+      data: {
+        feedbackScore: calculateFeedbackScore({
+          ...metric,
+          comments
+        })
+      }
+    });
+
+    return {
+      deletedId: commentId,
+      metric: serializeMetric(refreshedMetric)
+    };
+  });
+
+  return { status: "deleted" as const, data: result };
 }
 
 export async function updatePost(id: string, input: PostInput) {

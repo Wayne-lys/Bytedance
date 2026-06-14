@@ -136,4 +136,66 @@ describe("post feedback panel", () => {
     expect(screen.getByText("原有评论")).toBeInTheDocument();
     expect(screen.getByText("反馈分 22")).toBeInTheDocument();
   });
+
+  it("deletes a comment when the current user owns it", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          ok: true,
+          data: {
+            deletedId: "comment_1",
+            metric: {
+              likes: 1,
+              feedbackScore: 6
+            }
+          }
+        }),
+        { status: 200 }
+      )
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    render(
+      <PostFeedbackPanel
+        postId="post_1"
+        initialLikes={1}
+        initialFeedbackScore={14}
+        initialComments={[
+          {
+            id: "comment_1",
+            body: "我自己发的评论",
+            authorName: "演示管理员",
+            createdAt: "2026-06-09T07:00:00.000Z",
+            canDelete: true
+          } as any,
+          {
+            id: "comment_2",
+            body: "其他人的评论",
+            authorName: "其他读者",
+            createdAt: "2026-06-09T07:10:00.000Z",
+            canDelete: false
+          } as any
+        ]}
+      />
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "删除评论 我自己发的评论" }));
+
+    await waitFor(() => {
+      expect(screen.queryByText("我自己发的评论")).not.toBeInTheDocument();
+    });
+    expect(screen.getByText("其他人的评论")).toBeInTheDocument();
+    expect(screen.getByText("评论 1")).toBeInTheDocument();
+    expect(screen.getByText("反馈分 6")).toBeInTheDocument();
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/api/posts/post_1/comments",
+      expect.objectContaining({
+        method: "DELETE",
+        body: JSON.stringify({ commentId: "comment_1" })
+      })
+    );
+    expect(
+      screen.queryByRole("button", { name: "删除评论 其他人的评论" })
+    ).not.toBeInTheDocument();
+  });
 });
