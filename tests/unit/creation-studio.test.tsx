@@ -448,6 +448,115 @@ describe("creation studio", () => {
     expect(screen.getByText("建议午休前发布，并保留合规表达。")).toBeInTheDocument();
   });
 
+  it("generates a cover image from the current draft and publishes with it", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            ok: true,
+            data: {
+              image: {
+                url: "https://example.com/generated-cover.png",
+                prompt: "通勤补能封面",
+                provider: "openai-compatible"
+              }
+            }
+          }),
+          { status: 200 }
+        )
+      )
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            ok: true,
+            data: {
+              reviewToken: "review-token",
+              moderation: {
+                riskLevel: "safe",
+                reason: "未命中风险规则。",
+                suggestedAction: "allow",
+                riskTypes: ["none"]
+              },
+              quality: {
+                originality: 60,
+                structure: 60,
+                informationDensity: 60,
+                clarity: 60,
+                interactionPotential: 60,
+                platformFit: 60,
+                total: 60
+              }
+            }
+          }),
+          { status: 200 }
+        )
+      )
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            ok: true,
+            data: { post: { id: "post_1" } }
+          }),
+          { status: 200 }
+        )
+      );
+    vi.stubGlobal("fetch", fetchMock);
+
+    render(
+      <Studio
+        prompts={prompts}
+        materials={materials}
+        canReviewContent={true}
+        initialDraft={{
+          topic: "通勤补能",
+          audience: "城市白领",
+          title: "通勤路上的轻量补能",
+          body: "正文内容",
+          tags: "通勤,效率",
+          platform: "头条",
+          style: "真实、具体、信息密度高"
+        }}
+      />
+    );
+
+    fireEvent.click(screen.getByRole("checkbox", { name: "选择素材 通勤补能清单" }));
+    fireEvent.click(screen.getByRole("button", { name: "生成封面图" }));
+
+    await waitFor(() => {
+      expect(fetchMock).toHaveBeenCalledWith(
+        "/api/ai/image",
+        expect.objectContaining({
+          method: "POST",
+          body: expect.stringContaining('"title":"通勤路上的轻量补能"')
+        })
+      );
+    });
+    expect(fetchMock.mock.calls[0]?.[1]?.body).toContain(
+      '"materials":["通勤补能清单"]'
+    );
+    await waitFor(() => {
+      expect(screen.getByAltText("当前封面预览")).toHaveAttribute(
+        "src",
+        "https://example.com/generated-cover.png"
+      );
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: "发布内容" }));
+
+    await waitFor(() => {
+      expect(fetchMock).toHaveBeenLastCalledWith(
+        "/api/posts",
+        expect.objectContaining({
+          method: "POST",
+          body: expect.stringContaining(
+            '"coverUrl":"https://example.com/generated-cover.png"'
+          )
+        })
+      );
+    });
+  });
+
   it("lays out material options in a two-column scrollable grid", () => {
     render(
       <Studio

@@ -68,7 +68,14 @@ type GenerationGuidance = {
   provider?: string;
 };
 
-type ActiveAction = "generate" | "save" | "review" | "publish" | "rewrite" | "clear";
+type ActiveAction =
+  | "generate"
+  | "image"
+  | "save"
+  | "review"
+  | "publish"
+  | "rewrite"
+  | "clear";
 
 const DRAFT_STORAGE_KEY = "creator-draft";
 const AUTOSAVE_INTERVAL_SECONDS = 30;
@@ -124,6 +131,24 @@ function splitTags(tags: string) {
     .split(",")
     .map((tag) => tag.trim())
     .filter(Boolean);
+}
+
+function buildCoverGenerationPrompt(
+  draft: DraftState,
+  selectedMaterialNames: string[]
+) {
+  const subject = draft.title.trim() || draft.topic.trim() || "短图文封面";
+
+  return [
+    `围绕“${subject}”生成信息流短图文封面。`,
+    "画面真实、明亮、主体明确，适合头条内容发布。",
+    draft.body.trim() ? `正文摘要：${draft.body.trim().slice(0, 120)}` : "",
+    selectedMaterialNames.length
+      ? `参考素材：${selectedMaterialNames.join("、")}`
+      : ""
+  ]
+    .filter(Boolean)
+    .join("\n");
 }
 
 function providerLabel(provider: string) {
@@ -543,6 +568,61 @@ export function CreationStudio({
     });
   }
 
+  async function generateCoverImage() {
+    await runAction("image", async () => {
+      setPublishState("封面图生成中...");
+      const selectedMaterialNames = selectedMaterials.map((material) => material.name);
+      const prompt = buildCoverGenerationPrompt(draft, selectedMaterialNames);
+
+      try {
+        const response = await fetch("/api/ai/image", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            prompt,
+            title: draft.title,
+            topic: draft.topic,
+            audience: draft.audience,
+            platform: draft.platform,
+            style: draft.style,
+            body: draft.body,
+            materials: selectedMaterialNames,
+            size: "1024x1024"
+          })
+        });
+        const payload = await response.json();
+
+        if (!payload.ok || !payload.data?.image?.url) {
+          throw new Error(payload.error ?? "封面图生成失败");
+        }
+
+        const image = payload.data.image;
+
+        setDraft((current) => ({
+          ...current,
+          coverUrl: image.url
+        }));
+        setGenerationGuidance((current) => ({
+          coverSuggestion: "已生成封面图，可作为当前发布封面使用。",
+          publishAdvice:
+            current?.publishAdvice ??
+            "发布前确认封面图、标题、正文和标签表达一致。",
+          provider: image.provider
+        }));
+        setReview(null);
+        setReviewedDraftKey("");
+        setPublishState("封面图已生成并写入当前草稿。");
+      } catch (error) {
+        const message =
+          error instanceof Error && error.message
+            ? error.message
+            : "封面图生成失败";
+
+        setPublishState(`${message}，可继续使用素材封面。`);
+      }
+    });
+  }
+
   async function requestReviewForPublish() {
     if (!canReviewContent) {
       setPublishState("需要审核员或管理员权限才能审核并发布内容");
@@ -915,10 +995,39 @@ export function CreationStudio({
                 选择素材后，AI 会把素材名称作为上下文；图片素材会作为发布封面。
               </p>
             </div>
-            <StatusBadge tone={selectedMaterials.length > 0 ? "safe" : "neutral"}>
-              {selectedMaterials.length}/{usableMaterials.length}
-            </StatusBadge>
+            <div className="flex shrink-0 flex-col items-end gap-2">
+              <StatusBadge tone={selectedMaterials.length > 0 ? "safe" : "neutral"}>
+                {selectedMaterials.length}/{usableMaterials.length}
+              </StatusBadge>
+              <button
+                type="button"
+                onClick={generateCoverImage}
+                disabled={isActionBusy}
+                aria-busy={activeAction === "image"}
+                className="studio-button inline-flex h-9 items-center justify-center gap-2 border border-line bg-panel px-3 text-xs font-semibold text-ink hover:border-accent disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {actionButtonContent(activeAction === "image", "生成封面图")}
+              </button>
+            </div>
           </div>
+
+          {draft.coverUrl ? (
+            <div className="mt-5 rounded-md border border-line bg-panel-muted p-3">
+              <div className="flex items-center justify-between gap-3">
+                <p className="text-xs font-semibold text-accent">当前封面</p>
+                <span className="text-xs font-semibold text-muted">发布时使用</span>
+              </div>
+              <div className="mt-3 overflow-hidden rounded-md border border-line bg-panel">
+                <div className="aspect-[4/3] bg-panel-muted">
+                  <img
+                    src={draft.coverUrl}
+                    alt="当前封面预览"
+                    className="h-full w-full object-cover"
+                  />
+                </div>
+              </div>
+            </div>
+          ) : null}
 
           {selectedMaterials.length > 0 ? (
             <div className="mt-5 rounded-md border border-line bg-panel-muted p-3">
