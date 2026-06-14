@@ -17,7 +17,7 @@ AI 创作者辅助生产与分发平台
 - 前端：Next.js App Router、React 18、TypeScript、Tailwind CSS。
 - 后端：Next.js Route Handlers、Prisma ORM、Zod 参数校验。
 - 数据库：本地 SQLite；线上建议 PostgreSQL。
-- AI 能力：OpenAI SDK 兼容模式，支持火山方舟 Ark / OpenAI-compatible API；未配置真实 API 时使用 mock fallback，保障演示链路稳定。
+- AI 能力：OpenAI SDK 兼容模式，支持火山方舟 Ark / OpenAI-compatible API；已接入文本生成、AI 审核和封面生图，未配置真实 API 时使用 mock fallback，保障演示链路稳定。
 - 测试与工程化：Vitest、React Testing Library、Playwright E2E、Playwright LCP 性能测试。
 
 ## 体验地址
@@ -45,7 +45,7 @@ AI 创作者辅助生产与分发平台
 - 支持 Prompt 模板管理：新增、编辑、删除、搜索和选择模板。
 - 支持多媒体素材管理：素材上传、合规校验、引用次数、删除和批量管理。
 - 创作台支持选题、目标受众、发布平台、内容风格、Prompt 和素材上下文。
-- AI 一键生成标题、正文、标签、封面引用和发布建议。
+- AI 一键生成标题、正文、标签、封面建议和发布建议，并支持一键生成发布封面图。
 - 支持一键清空、未发布内容保留、发布后自动清空。
 - 支持已发布内容二次编辑、重新审核和更新发布。
 - 编辑器每 30 秒自动保存草稿，支持 localStorage 本地恢复、云端同步和断网继续编辑。
@@ -85,7 +85,7 @@ AI 创作者辅助生产与分发平台
 
 - 首页工作台：系统概览、素材预览和核心入口。
 - 登录页：邮箱/手机号登录注册。
-- 创作台：Prompt、素材、AI 生成、发布前审核。
+- 创作台：Prompt、素材、AI 文本生成、封面生图、发布前审核。
 - 素材库：上传、合规状态、删除。
 - 审核与质量页：风险等级、命中规则、质量评分。
 - 内容管理页：已发布内容、二次编辑、下线、撤回、回滚。
@@ -97,14 +97,14 @@ AI 创作者辅助生产与分发平台
 核心功能：
 
 - [x] 用户中心：手机号 / 邮箱登录注册、安全退出登录。
-- [x] AI 内容创作：Prompt 与素材管理、一键发布与二次编辑。
+- [x] AI 内容创作：Prompt 与素材管理、文本生成、封面生图、一键发布与二次编辑。
 - [x] 草稿与版本管理：30 秒自动云端保存、本地恢复、断网继续编辑与恢复同步。
 - [x] 内容 AI 审核：质量评估打分、违规内容自动拦截、一键生成合规替代内容。
 - [x] 热点与新发布 / 推荐榜单：图文详情消费、无限滚动加载。
 
 进阶挑战：
 
-- [x] 短图文创意编辑器：AI 自动生成结构完整的图文内容。
+- [x] 短图文创意编辑器：AI 自动生成结构完整的图文内容，并支持发布封面生图。
 - [x] 高精度内容安全识别：目标高危问题识别准确率 >= 90%，支持下线 / 撤回 / 回滚。
 - [x] 智能排序热点榜单：综合质量分、阅读热度、发布时间、用户反馈等多因子动态加权。
 - [x] 开放 API 集成：已完成抖音图文沙盒模拟分发。审核通过并发布的内容可在详情页一键同步到抖音图文模拟平台，系统持久化外部作品 ID 和同步状态；真实抖音 / 头条开放 API 仍需开放平台应用、主体资质、线上域名、OAuth 回调和权限审核。
@@ -116,10 +116,10 @@ AI 创作者辅助生产与分发平台
 项目采用单体全栈架构：
 
 - 页面层：Next.js App Router 页面负责工作台、创作台、素材库、内容管理、审核、榜单和详情页。
-- API 层：Next.js Route Handlers 提供登录、素材、Prompt、草稿、AI 生成、审核、发布、反馈和榜单接口。
+- API 层：Next.js Route Handlers 提供登录、素材、Prompt、草稿、AI 文本生成、AI 封面生图、审核、发布、反馈和榜单接口。
 - 领域服务层：`src/features/*` 分离 auth、AI、materials、prompts、drafts、moderation、quality、posts、ranking、evaluation 等模块。
 - 数据层：Prisma 统一管理模型、关联关系和持久化。
-- AI 层：OpenAI-compatible provider + mock fallback。
+- AI 层：OpenAI-compatible 文本 provider、图片 provider + mock fallback。
 
 核心数据流：
 
@@ -141,9 +141,11 @@ AI 创作者辅助生产与分发平台
 
 #### AI 内容创作模块
 
-- `src/features/ai/*`：统一生成接口、真实 provider 和 mock provider。
+- `src/features/ai/*`：统一文本生成、生图接口、真实 provider 和 mock provider。
+- `/api/ai/generate`：生成标题、正文、标签、封面建议和发布建议。
+- `/api/ai/image`：根据当前草稿和素材上下文生成封面图，火山方舟图片模型要求的尺寸会自动使用 1920x1920。
 - `src/app/(workspace)/create/creation-studio.tsx`：创作台 UI 和交互。
-- 生成结果包含标题、正文、标签、封面建议和发布建议。
+- 生成结果包含标题、正文、标签、封面建议、发布建议和当前发布封面。
 - AI 生成中会禁用其他按钮，避免并发操作造成状态错乱。
 
 #### AI 审核模块
@@ -169,6 +171,12 @@ AI_BASE_URL="https://ark.cn-beijing.volces.com/api/v3"
 AI_API_KEY="<your-api-key>"
 AI_MODEL="<your-endpoint-id-or-model-id>"
 AI_USER="<your-challenge-email>"
+
+# 封面生图模型，建议与文本模型分开配置
+IMAGE_BASE_URL="https://ark.cn-beijing.volces.com/api/v3"
+IMAGE_API_KEY="<your-api-key>"
+IMAGE_MODEL="<your-image-endpoint-id-or-model-id>"
+IMAGE_USER="<your-challenge-email>"
 ```
 
 同时兼容：
@@ -179,13 +187,18 @@ ARK_MODEL
 ARK_ENDPOINT_ID
 ARK_BASE_URL
 ARK_USER
+ARK_IMAGE_API_KEY
+ARK_IMAGE_MODEL
+ARK_IMAGE_ENDPOINT_ID
+ARK_IMAGE_BASE_URL
+ARK_IMAGE_USER
 ```
 
 安全策略：
 
 - 真实 API key 只放 `.env` 或部署平台环境变量。
 - 不提交 API key、EP 截图或密钥到 GitHub。
-- 外部 AI 不可用时使用 mock fallback 保证演示稳定。
+- 外部 AI 不可用时使用 mock fallback 保证演示稳定；真实封面生图失败时保留素材封面或本地 mock 封面。
 
 ### 数据库设计
 
@@ -264,6 +277,7 @@ ARK_USER
 - 第三轮：加入风险边界和负面约束，降低导流、夸张和违规表达。
 - 第四轮：要求结构化输出标题、正文、标签、封面建议和发布建议，方便前端稳定回填。
 - 第五轮：对中高风险内容引导合规改写，而不是绕过审核。
+- 第六轮：增加封面生图提示词，约束画面真实、干净、主体明确，并规避水印、二维码和联系方式。
 
 ### 审核准确率评估
 
@@ -290,6 +304,7 @@ npm run test:e2e -- tests/performance/lcp.spec.ts
 ### 内容生成与分发效果
 
 - 生成内容能结合选题、受众、平台、风格、Prompt 和素材。
+- 封面生图能根据当前草稿和素材上下文生成发布封面，发布时自动带入 `coverUrl`。
 - 发布前有审核、质量分和改写建议。
 - 热点榜使用真实阅读数。
 - 推荐榜使用质量、热度、新鲜度、反馈和风险扣分。
@@ -327,7 +342,7 @@ npm run test:e2e
 当前不足：
 
 - 真实抖音/头条开放 API 未接入，当前使用沙盒模拟分发适配层；真实上线仍需要开放平台主体认证、线上域名、OAuth 回调和权限审核。
-- 真实 Ark API 依赖资源池 key 可用性；当前代码已支持真实调用和错误提示，key 不可用时可切换到本地 mock 演示模式。
+- 真实 Ark API 依赖资源池 key 和模型权限可用性；当前代码已支持文本生成、AI 审核和封面生图的真实调用与错误提示，key 不可用时可切换到本地 mock 演示模式。
 - 审核准确率目前基于内置评估集，后续可以扩充真实语料样本。
 - 上传素材的生产级对象存储尚未落地，本地演示和预置素材已经可用。
 
